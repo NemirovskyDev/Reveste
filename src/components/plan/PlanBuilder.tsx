@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GarmentArt } from "@/components/garments/GarmentArt";
+import { PieceImage } from "@/components/piece/PieceImage";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
@@ -96,7 +96,7 @@ export function PlanBuilder() {
                     className="relative block w-full rounded-control"
                   >
                     <span className="mx-auto block aspect-[5/6] w-full max-w-56">
-                      <GarmentArt type={piece.type} color={piece.color} className="h-full w-full" />
+                      <PieceImage piece={piece} className="h-full w-full" />
                     </span>
                     {selected && (
                       <span

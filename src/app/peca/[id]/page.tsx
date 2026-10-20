@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GarmentArt } from "@/components/garments/GarmentArt";
+import { PieceImage } from "@/components/piece/PieceImage";
 import { Container } from "@/components/layout/Container";
 import { PieceActions } from "@/components/piece/PieceActions";
 import { PieceCard } from "@/components/piece/PieceCard";
@@ -103,12 +103,12 @@ export default async function PiecePage(props: PageProps<"/peca/[id]">) {
         <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16">
           <div className="pt-4">
             <LabelTag tier={piece.tier} className="px-6 pb-8 pt-12 lg:sticky lg:top-32">
-              <div className="mx-auto aspect-[200/274] w-full max-w-md">
-                <GarmentArt
-                  type={piece.type}
-                  color={piece.color}
-                  withHanger
+              <div className="mx-auto aspect-[4/5] w-full max-w-md">
+                <PieceImage
+                  piece={piece}
+                  priority
                   title={`${pieceTitle(piece)}, ${GARMENT_LABEL[piece.type]}`}
+                  className="h-full w-full"
                 />
               </div>
             </LabelTag>

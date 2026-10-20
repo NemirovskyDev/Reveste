@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { GarmentArt } from "@/components/garments/GarmentArt";
+import { PieceImage } from "@/components/piece/PieceImage";
 import { Icon } from "@/components/ui/Icon";
 import { findPiece } from "@/data/catalog";
 import { getGsap } from "@/lib/gsap";
@@ -13,7 +13,7 @@ function ChooseVisual() {
     <div className="grid grid-cols-4 gap-2" aria-hidden="true">
       {PICKS.map((piece) => (
         <div key={piece.id} className="rounded-control border-2 border-ink bg-white p-1.5">
-          <GarmentArt type={piece.type} color={piece.color} className="w-full" />
+          <PieceImage piece={piece} className="aspect-[4/5] w-full" />
         </div>
       ))}
     </div>

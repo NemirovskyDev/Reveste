@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { GarmentArt } from "@/components/garments/GarmentArt";
+import { PieceImage } from "@/components/piece/PieceImage";
 import { ButtonLink } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
@@ -18,7 +18,7 @@ function Thumb({ pieceId }: { pieceId: string }) {
   const piece = getPiece(pieceId);
   return (
     <span className="grid size-20 shrink-0 place-items-center rounded-control border-2 border-ink bg-white p-1.5" aria-hidden="true">
-      <GarmentArt type={piece.type} color={piece.color} className="size-full" />
+      <PieceImage piece={piece} className="size-full" />
     </span>
   );
 }

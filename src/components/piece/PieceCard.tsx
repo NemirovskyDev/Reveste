@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GarmentArt } from "@/components/garments/GarmentArt";
+import { PieceImage } from "@/components/piece/PieceImage";
 import { LabelTag } from "@/components/ui/LabelTag";
 import { Tilt } from "@/components/ui/Tilt";
 import { TIER_LABEL, type Piece } from "@/data/catalog";
@@ -18,7 +18,7 @@ export function PieceCard({ piece, priority = false }: { piece: Piece; priority?
             className="transition duration-500 ease-out-expo group-hover:-translate-y-1.5 group-hover:shadow-lift"
           >
             <div className="mx-auto aspect-[5/6] w-full max-w-64" data-priority={priority ? "" : undefined}>
-              <GarmentArt type={piece.type} color={piece.color} className="h-full w-full" />
+              <PieceImage piece={piece} priority={priority} className="h-full w-full" />
             </div>
           </LabelTag>
         </Tilt>

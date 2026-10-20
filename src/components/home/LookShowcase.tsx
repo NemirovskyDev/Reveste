@@ -2,7 +2,7 @@
 
 import { useMotionValueEvent, useScroll } from "motion/react";
 import { useRef, useState } from "react";
-import { GarmentArt } from "@/components/garments/GarmentArt";
+import { PieceImage } from "@/components/piece/PieceImage";
 import { getPiece } from "@/data/catalog";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
@@ -22,7 +22,7 @@ function Look({ look, active, className }: { look: (typeof LOOKS)[number]; activ
       <div className="grid grid-cols-3 gap-3 md:gap-6">
         {look.pieces.map((piece) => (
           <div key={piece.id} className="rounded-card border-2 border-ink bg-cream p-2 md:p-4">
-            <GarmentArt type={piece.type} color={piece.color} className="w-full" />
+            <PieceImage piece={piece} className="aspect-[4/5] w-full" />
           </div>
         ))}
       </div>
@@ -54,7 +54,7 @@ export function LookShowcase() {
               <div className="grid grid-cols-3 gap-3 md:gap-6">
                 {look.pieces.map((piece) => (
                   <div key={piece.id} className="rounded-card border-2 border-ink bg-cream p-2 md:p-4">
-                    <GarmentArt type={piece.type} color={piece.color} className="w-full" />
+                    <PieceImage piece={piece} className="aspect-[4/5] w-full" />
                   </div>
                 ))}
               </div>
