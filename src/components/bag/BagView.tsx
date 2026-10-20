@@ -9,7 +9,7 @@ import { getPiece } from "@/data/catalog";
 import { formatMoney, plural } from "@/lib/format";
 import { summarizeBag } from "@/lib/orderLines";
 import { pieceTitle } from "@/lib/piece";
-import { PLAN_SIZE, RENTAL_DAYS, netPlanRentalCents, rentalCents, type RentalDays } from "@/lib/pricing";
+import { PLAN_SIZE, RENTAL_DAYS, buyoutCents, netPlanRentalCents, rentalCents, type RentalDays } from "@/lib/pricing";
 import { useCart } from "@/store/cart";
 import { usePlan } from "@/store/plan";
 import { useBagHydrated } from "@/store/useHydrated";
@@ -42,7 +42,7 @@ export function BagView() {
         <Icon name="bag" size={40} />
         <h2 className="text-3xl font-bold">Sua sacola está vazia</h2>
         <p className="max-w-lg text-lg text-ink-soft">
-          Monte seu plano de 4 peças ou alugue uma peça avulsa por 7, 14 ou 30 dias.
+          Monte seu plano de 4 peças, alugue uma peça avulsa por 7, 14 ou 30 dias ou compre a peça que você mais gostou.
         </p>
         <div className="flex flex-wrap gap-3">
           <ButtonLink href="/assinatura">Montar meu plano</ButtonLink>
@@ -105,13 +105,46 @@ export function BagView() {
           </section>
         )}
 
-        {lines.length > 0 && (
+        {summary.purchaseCount > 0 && (
+          <section aria-labelledby="compras-titulo">
+            <h2 id="compras-titulo" className="mb-4 text-2xl font-bold">
+              Peças para comprar
+            </h2>
+            <ul className="grid gap-3">
+              {lines
+                .filter((line) => line.buy)
+                .map((line) => {
+                  const piece = getPiece(line.pieceId);
+                  return (
+                    <li key={line.pieceId} className="flex flex-wrap items-center gap-4 rounded-card border-2 border-ink bg-cream p-3">
+                      <Thumb pieceId={line.pieceId} />
+                      <div className="min-w-0 flex-1 basis-40">
+                        <p className="font-bold leading-snug">{pieceTitle(piece)}</p>
+                        <p className="text-sm text-ink-soft">Tamanho {line.size} · fica com você</p>
+                        <p className="mt-1 font-bold">{formatMoney(buyoutCents(piece, 0))}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeLine(line.pieceId)}
+                        aria-label={`Tirar ${pieceTitle(piece)} da sacola`}
+                        className="grid size-11 shrink-0 place-items-center rounded-full hover:bg-lavender/60"
+                      >
+                        <Icon name="close" size={20} />
+                      </button>
+                    </li>
+                  );
+                })}
+            </ul>
+          </section>
+        )}
+
+        {summary.rentalCount > 0 && (
           <section aria-labelledby="avulsos-titulo">
             <h2 id="avulsos-titulo" className="mb-4 text-2xl font-bold">
               Aluguéis avulsos
             </h2>
             <ul className="grid gap-3">
-              {lines.map((line) => {
+              {lines.filter((line) => !line.buy).map((line) => {
                 const piece = getPiece(line.pieceId);
                 return (
                   <li key={line.pieceId} className="flex flex-wrap items-center gap-4 rounded-card border-2 border-ink bg-cream p-3">
@@ -176,12 +209,20 @@ export function BagView() {
               <dd>{formatMoney(summary.pendingPlanCents)}</dd>
             </div>
           )}
-          {lines.length > 0 && (
+          {summary.rentalCount > 0 && (
             <div className="flex justify-between gap-3">
               <dt>
-                {lines.length} {plural(lines.length, "aluguel avulso", "aluguéis avulsos")}
+                {summary.rentalCount} {plural(summary.rentalCount, "aluguel avulso", "aluguéis avulsos")}
               </dt>
               <dd>{formatMoney(summary.rentalsCents)}</dd>
+            </div>
+          )}
+          {summary.purchaseCount > 0 && (
+            <div className="flex justify-between gap-3">
+              <dt>
+                {summary.purchaseCount} {plural(summary.purchaseCount, "peça comprada", "peças compradas")}
+              </dt>
+              <dd>{formatMoney(summary.purchasesCents)}</dd>
             </div>
           )}
           <div className="flex justify-between gap-3">

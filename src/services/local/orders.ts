@@ -14,7 +14,7 @@ const lineSchema = z.object({
   pieceId: z.string(),
   title: z.string(),
   size: z.enum(["PP", "P", "M", "G", "GG"]),
-  kind: z.enum(["plan", "rental"]),
+  kind: z.enum(["plan", "rental", "purchase"]),
   days: z.union([z.literal(7), z.literal(14), z.literal(30)]).optional(),
   priceCents: z.number().int().nonnegative(),
 });
@@ -24,7 +24,7 @@ const orderSchema = z.object({
   number: z.string(),
   userId: z.string(),
   createdAt: z.string(),
-  kind: z.enum(["plan", "rental", "mixed"]),
+  kind: z.enum(["plan", "rental", "purchase", "mixed"]),
   lines: z.array(lineSchema),
   subtotalCents: z.number().int(),
   shippingCents: z.number().int(),
@@ -60,15 +60,15 @@ export function createLocalOrders(now: () => Date = () => new Date()): OrdersSer
       const all = readAll();
       const created = now();
       const subtotalCents = input.lines.reduce((sum, line) => sum + line.priceCents, 0);
-      const hasPlan = input.lines.some((line) => line.kind === "plan");
-      const hasRental = input.lines.some((line) => line.kind === "rental");
+      const kinds = new Set(input.lines.map((line) => line.kind));
+      const hasPlan = kinds.has("plan");
 
       const order: Order = {
         id: randomId(),
         number: orderNumber(all),
         userId: input.userId,
         createdAt: created.toISOString(),
-        kind: hasPlan && hasRental ? "mixed" : hasPlan ? "plan" : "rental",
+        kind: kinds.size > 1 ? "mixed" : (input.lines[0].kind as Order["kind"]),
         lines: input.lines,
         subtotalCents,
         shippingCents: input.shipping.cents,

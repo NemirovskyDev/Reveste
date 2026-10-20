@@ -20,6 +20,7 @@ export function PieceActions({ piece }: { piece: Piece }) {
 
   const addToCart = useCart((state) => state.add);
   const inCart = useCart((state) => state.lines.some((line) => line.pieceId === piece.id));
+  const inCartAsPurchase = useCart((state) => state.lines.some((line) => line.pieceId === piece.id && line.buy));
   const togglePlan = usePlan((state) => state.toggle);
   const inPlan = usePlan((state) => state.slots.some((slot) => slot.pieceId === piece.id));
   const planCount = usePlan((state) => state.slots.length);
@@ -29,6 +30,11 @@ export function PieceActions({ piece }: { piece: Piece }) {
   function onAddToCart() {
     addToCart({ pieceId: piece.id, size, days });
     setNotice({ kind: "bag", text: `Adicionado à sacola: tamanho ${size}, ${days} dias.` });
+  }
+
+  function onBuy() {
+    addToCart({ pieceId: piece.id, size, days, buy: true });
+    setNotice({ kind: "bag", text: `Compra adicionada à sacola: tamanho ${size}, ${formatMoney(buyoutCents(piece, 0))}.` });
   }
 
   function onTogglePlan() {
@@ -71,7 +77,7 @@ export function PieceActions({ piece }: { piece: Piece }) {
 
       <div className="grid gap-3">
         <Button size="lg" block icon="bag" onClick={onAddToCart}>
-          {inCart ? "Atualizar na sacola" : "Adicionar à sacola"}
+          {inCart && !inCartAsPurchase ? "Atualizar aluguel na sacola" : "Alugar e adicionar à sacola"}
         </Button>
         <Button size="lg" block variant="secondary" icon={inPlan ? "check" : "plus"} onClick={onTogglePlan}>
           {inPlan ? "No plano. Tirar" : `Incluir no plano · ${formatMoney(netPlanRentalCents(piece))}/mês`}
@@ -91,14 +97,19 @@ export function PieceActions({ piece }: { piece: Piece }) {
         </p>
       </div>
 
-      <section aria-labelledby="comprar-titulo" className="rounded-card border-2 border-ink bg-mint p-5">
-        <h2 id="comprar-titulo" className="mb-1 text-xl font-bold">
-          Gostou? Fique com ela.
-        </h2>
-        <p className="text-ink">
-          Compra por <strong>{formatMoney(buyoutCents(piece, 0))}</strong>. Depois de 1 mês de aluguel no plano, falta
-          pagar <strong>{formatMoney(buyoutCents(piece, 1))}</strong>.
-        </p>
+      <section aria-labelledby="comprar-titulo" className="grid gap-3 rounded-card border-2 border-ink bg-mint p-5">
+        <div>
+          <h2 id="comprar-titulo" className="mb-1 text-xl font-bold">
+            Ou compre, sem alugar antes
+          </h2>
+          <p className="text-ink">
+            A peça fica com você por <strong>{formatMoney(buyoutCents(piece, 0))}</strong>. Se já alugou, o que pagou
+            é descontado: depois de 1 mês no plano, falta pagar <strong>{formatMoney(buyoutCents(piece, 1))}</strong>.
+          </p>
+        </div>
+        <Button size="lg" block variant="secondary" icon="bag" onClick={onBuy}>
+          {inCart && inCartAsPurchase ? "Compra na sacola" : `Comprar por ${formatMoney(buyoutCents(piece, 0))}`}
+        </Button>
       </section>
 
       <ButtonLink href="/ajuda#regras" variant="ghost" size="sm" className="justify-self-start">

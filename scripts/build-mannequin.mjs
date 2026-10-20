@@ -71,19 +71,24 @@ function smin(a, b, k) {
 
 /** Cabeça de cada corpo (centro e raios), igual à usada pelo site para o rosto e o cabelo. */
 const HEAD = {
-  female: { c: [0, 1.6, 0.01], r: [0.074, 0.101, 0.085] },
-  male: { c: [0, 1.595, 0.01], r: [0.08, 0.107, 0.091] },
+  female: { c: [0, 1.635, 0.012], r: [0.074, 0.101, 0.085] },
+  male: { c: [0, 1.63, 0.012], r: [0.08, 0.107, 0.091] },
 };
 
-/** Posições (sem a escala do homem) usadas por braços, mãos e pernas. */
+/**
+ * Posições (sem a escala do homem) usadas por braços, mãos e pernas. Pose de passarela: braços soltos junto do
+ * corpo e peso na perna de x negativo (s = -1), reta e sob o corpo; a de x positivo (s = 1) descansa, com o quadril
+ * mais baixo, o joelho dobrado e o pé para fora e um pouco para trás.
+ */
 function limbPoints(type, s) {
   const female = type === "female";
   const sh = female ? [s * 0.172, 1.4, 0] : [s * 0.215, 1.42, 0];
-  const el = female ? [s * 0.235, 1.13, 0.012] : [s * 0.275, 1.14, 0.012];
-  const wr = female ? [s * 0.285, 0.88, 0.058] : [s * 0.33, 0.89, 0.06];
-  const hp = [s * (female ? 0.088 : 0.092), 0.92, 0];
-  const kn = [s * 0.097, 0.5, 0.012];
-  const an = [s * 0.093, 0.075, -0.005];
+  const el = female ? [s * 0.2, 1.13, -0.004] : [s * 0.25, 1.14, -0.004];
+  const wr = female ? [s * 0.216, 0.88, 0.05] : [s * 0.268, 0.89, 0.05];
+  const rest = s > 0;
+  const hp = [s * (female ? 0.088 : 0.092), rest ? 0.906 : 0.93, 0];
+  const kn = rest ? [s * 0.118, 0.5, 0.045] : [s * 0.09, 0.51, 0.008];
+  const an = rest ? [s * 0.142, 0.075, -0.03] : [s * 0.088, 0.075, -0.005];
   return { sh, el, wr, hp, kn, an };
 }
 
@@ -97,7 +102,9 @@ function primitives(type) {
   // Cabeça, orelhas e pescoço
   add(PART.head, 0.03, ellipsoid(head.c, head.r));
   for (const s of [-1, 1]) add(PART.head, 0.012, ellipsoid([s * (head.r[0] * 0.99), head.c[1] - 0.006, head.c[2] - 0.006], [0.0115, 0.031, 0.02]));
-  add(PART.neck, 0.04, roundCone([0, 1.5, 0], [0, 1.575, 0.008], 0.047, 0.04));
+  // Pescoço fino e comprido, com a base alargada nos ombros (trapézio) para a linha descer suave.
+  add(PART.neck, 0.03, roundCone([0, 1.47, 0], [0, 1.58, 0.014], female ? 0.036 : 0.043, female ? 0.03 : 0.036));
+  for (const s of [-1, 1]) add(PART.torso, 0.05, roundCone([s * 0.03, 1.5, 0], [s * (female ? 0.14 : 0.17), 1.44, 0], 0.03, 0.04));
 
   // Tronco
   if (female) {
@@ -142,9 +149,11 @@ function primitives(type) {
     // Perna
     add(PART.thigh, 0.06, roundCone(hp, kn, female ? 0.072 : 0.088, female ? 0.048 : 0.056));
     add(PART.calf, 0.04, roundCone(kn, an, female ? 0.05 : 0.053, 0.03));
-    add(PART.calf, 0.05, ellipsoid([s * 0.098, 0.38, -0.02], [0.043, 0.1, 0.043]));
-    add(PART.foot, 0.03, roundCone([s * 0.093, 0.058, 0], [s * 0.102, 0.04, 0.14], 0.034, 0.026));
-    add(PART.foot, 0.03, ellipsoid([s * 0.093, 0.052, -0.025], [0.034, 0.04, 0.04]));
+    // Barriga da panturrilha e pé acompanham o tornozelo; o pé da perna que descansa abre para fora.
+    add(PART.calf, 0.05, ellipsoid([(kn[0] + an[0]) / 2 + s * 0.004, 0.38, (kn[2] + an[2]) / 2 - 0.02], [0.043, 0.1, 0.043]));
+    const out = s > 0 ? 0.05 : 0.009;
+    add(PART.foot, 0.03, roundCone([an[0], 0.058, an[2] + 0.005], [an[0] + s * out, 0.04, an[2] + 0.145], 0.034, 0.026));
+    add(PART.foot, 0.03, ellipsoid([an[0], 0.052, an[2] - 0.02], [0.034, 0.04, 0.04]));
   }
   return prims;
 }

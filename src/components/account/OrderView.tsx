@@ -105,7 +105,8 @@ export function OrderView() {
                 <span>
                   <span className="block font-bold">{line.title}</span>
                   <span className="text-sm text-ink-soft">
-                    Tamanho {line.size} · {line.kind === "plan" ? "Plano mensal" : `Aluguel de ${line.days} dias`}
+                    Tamanho {line.size} ·{" "}
+                    {line.kind === "plan" ? "Plano mensal" : line.kind === "purchase" ? "Compra" : `Aluguel de ${line.days} dias`}
                   </span>
                 </span>
                 <span className="font-bold">{formatMoney(line.priceCents)}</span>

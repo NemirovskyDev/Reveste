@@ -7,7 +7,7 @@ import { sanitizeCart, type CartLine } from "./sanitize";
 
 type CartState = {
   lines: CartLine[];
-  /** Adiciona o aluguel avulso; se a peça já está na sacola, troca tamanho e prazo. */
+  /** Adiciona o aluguel avulso ou a compra (`buy`); se a peça já está na sacola, troca tamanho, prazo e modo. */
   add: (line: CartLine) => void;
   remove: (pieceId: string) => void;
   setDays: (pieceId: string, days: RentalDays) => void;
@@ -22,7 +22,7 @@ export const useCart = create<CartState>()(
         set((state) => ({ lines: [...state.lines.filter((item) => item.pieceId !== line.pieceId), line] })),
       remove: (pieceId) => set((state) => ({ lines: state.lines.filter((item) => item.pieceId !== pieceId) })),
       setDays: (pieceId, days) =>
-        set((state) => ({ lines: state.lines.map((item) => (item.pieceId === pieceId ? { ...item, days } : item)) })),
+        set((state) => ({ lines: state.lines.map((item) => (item.pieceId === pieceId && !item.buy ? { ...item, days } : item)) })),
       clear: () => set({ lines: [] }),
     }),
     {

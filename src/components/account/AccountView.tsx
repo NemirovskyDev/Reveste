@@ -181,7 +181,7 @@ export function AccountView() {
                     </li>
                   ))}
                 </ul>
-                {order.status !== "devolvido" && <ReturnForm order={order} onScheduled={replaceOrder} />}
+                {order.status !== "devolvido" && order.kind !== "purchase" && <ReturnForm order={order} onScheduled={replaceOrder} />}
               </li>
             ))}
           </ul>

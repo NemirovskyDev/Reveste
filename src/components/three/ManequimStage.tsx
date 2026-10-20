@@ -168,7 +168,6 @@ function Scene({ progress, spinning, throttle }: { progress: ProgressSource; spi
           <Mannequin
             type={person.type}
             skinColor={person.skin}
-            lipColor={person.lip}
             shoes={person.shoes}
             hair={person.hair}
             outfit={person.looks[0]}
@@ -177,7 +176,6 @@ function Scene({ progress, spinning, throttle }: { progress: ProgressSource; spi
           <Mannequin
             type={person.type}
             skinColor={person.skin}
-            lipColor={person.lip}
             shoes={person.shoes}
             hair={person.hair}
             skin={false}

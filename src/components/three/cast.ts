@@ -9,7 +9,6 @@ export type Person = {
   id: string;
   type: BodyType;
   skin: string;
-  lip: string;
   hair: Hair;
   /** Cor dos sapatos. */
   shoes: string;
@@ -28,10 +27,9 @@ export const CAST: readonly Person[] = [
     id: "mulher-branca",
     type: "female",
     skin: "#f0c9ae",
-    lip: "#c4756c",
     shoes: "#f3f1ec",
     build: { w: 0.97, h: 1 },
-    hair: { style: "long", color: "#e2c17a" },
+    hair: { style: "long" },
     looks: [
       { dress: { ...wear("renner-vestido"), hemY: 0.5, hemRadius: 0.27, fold: { count: 16, amp: 0.03 } } },
       { top: { ...wear("zara-blazer"), sleeve: "long" }, skirt: { ...wear("farm-saia"), hemY: 0.5, hemRadius: 0.3, fold: { count: 12, amp: 0.04 } } },
@@ -41,10 +39,9 @@ export const CAST: readonly Person[] = [
     id: "homem-negro",
     type: "male",
     skin: "#6a4330",
-    lip: "#4a2a22",
     shoes: "#efece6",
     build: { w: 1.02, h: 1.05 },
-    hair: { style: "crop", color: "#17110e" },
+    hair: { style: "crop" },
     looks: [
       { top: { ...wear("ca-camisa"), sleeve: "short" }, bottom: wear("riachuelo-calca") },
       { top: { ...wear("ca-jaqueta"), sleeve: "long" }, bottom: wear("mango-calca") },
@@ -54,10 +51,9 @@ export const CAST: readonly Person[] = [
     id: "mulher-negra",
     type: "female",
     skin: "#5d3b2a",
-    lip: "#45241d",
     shoes: "#b98763",
     build: { w: 1.05, h: 1.03 },
-    hair: { style: "puff", color: "#17110e" },
+    hair: { style: "puff" },
     looks: [
       { dress: { ...wear("farm-vestido"), hemY: 0.1, hemRadius: 0.34, fold: { count: 18, amp: 0.035 } } },
       { top: { ...wear("renner-blazer"), sleeve: "long" }, skirt: { ...wear("ca-saia"), hemY: 0.55, hemRadius: 0.28, fold: { count: 44, amp: 0.022 } } },
@@ -67,10 +63,9 @@ export const CAST: readonly Person[] = [
     id: "homem-branco",
     type: "male",
     skin: "#efc7a8",
-    lip: "#b9685f",
     shoes: "#5a3d2b",
     build: { w: 0.98, h: 1 },
-    hair: { style: "cap", color: "#8a4b2a" },
+    hair: { style: "cap" },
     looks: [
       { top: { ...wear("riachuelo-camisa"), sleeve: "long" }, bottom: wear("renner-calca") },
       { top: { ...wear("zara-camisa"), sleeve: "long" }, bottom: wear("mango-calca") },

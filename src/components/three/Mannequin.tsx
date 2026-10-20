@@ -39,26 +39,26 @@ export type Outfit = {
   skirt?: Garment & { hemY: number; hemRadius: number; fold?: Fold };
 };
 
-/** Estilos: crop (rente), cap (curto com topete), bob (até o queixo), long (liso até os ombros), bun (coque) e puff (black power). */
-export type Hair = { style: "cap" | "crop" | "bob" | "long" | "bun" | "puff"; color: string };
+/** Penteado esculpido, no mesmo acabamento fosco do corpo (manequim de vitrine, sem rosto). Estilos: crop (rente), cap (curto com topete), bob (até o queixo), long (liso até os ombros), bun (coque) e puff (black power). */
+export type Hair = { style: "cap" | "crop" | "bob" | "long" | "bun" | "puff" };
 
 /** Escala do corpo do homem no script que esculpe os corpos. */
 const BODY_SCALE = { female: 1, male: 1.045 } as const;
 
 /** Cabeça de cada corpo (centro e raios), igual à do script, já com a escala do homem. */
 const HEAD = {
-  female: { center: [0, 1.6, 0.01], radii: [0.074, 0.101, 0.085] },
-  male: { center: [0, 1.595 * 1.045, 0.01 * 1.045], radii: [0.08 * 1.045, 0.107 * 1.045, 0.091 * 1.045] },
+  female: { center: [0, 1.635, 0.012], radii: [0.074, 0.101, 0.085] },
+  male: { center: [0, 1.63 * 1.045, 0.012 * 1.045], radii: [0.08 * 1.045, 0.107 * 1.045, 0.091 * 1.045] },
 } as const;
 
 /** Pontos do braço (ombro, cotovelo e punho) para o lado direito, sem a escala do homem. */
 const ARM = {
-  female: { shoulder: [0.172, 1.4, 0], elbow: [0.235, 1.13, 0.012], wrist: [0.285, 0.88, 0.058], upperR: 0.036, wristR: 0.024 },
-  male: { shoulder: [0.215, 1.42, 0], elbow: [0.275, 1.14, 0.012], wrist: [0.33, 0.89, 0.06], upperR: 0.043, wristR: 0.028 },
+  female: { shoulder: [0.172, 1.4, 0], elbow: [0.2, 1.13, -0.004], wrist: [0.216, 0.88, 0.05], upperR: 0.036, wristR: 0.024 },
+  male: { shoulder: [0.215, 1.42, 0], elbow: [0.25, 1.14, -0.004], wrist: [0.268, 0.89, 0.05], upperR: 0.043, wristR: 0.028 },
 } as const;
 
 /** Distância do centro até a ponta da manga, onde a foto da blusa termina dos lados. */
-const SLEEVE_HALF_SPAN = { female: 0.3, male: 0.345 } as const;
+const SLEEVE_HALF_SPAN = { female: 0.235, male: 0.29 } as const;
 
 const PHOTO_LIFT = 0.0035;
 
@@ -98,10 +98,10 @@ function ringRotation(direction: Vector3): [number, number, number] {
 function collarPart(type: BodyType, color: string): Part {
   const s = BODY_SCALE[type];
   return {
-    geometry: new TorusGeometry(0.058 * s, 0.0115, 10, 36),
+    geometry: new TorusGeometry(0.048 * s, 0.0105, 10, 36),
     color,
     shaded: false,
-    position: [0, 1.512 * s, 0.002],
+    position: [0, 1.492 * s, 0.004],
     rotation: [Math.PI / 2 - 0.14, 0, 0],
     scale: [1, 0.86, 1],
   };
@@ -300,24 +300,47 @@ function GarmentPhoto({ photoId, geometries }: { photoId: string; geometries: Bu
   );
 }
 
+/**
+ * Dá textura à malha do cabelo deslocando cada vértice para fora ou para dentro: sulcos que descem como mechas
+ * (`flow` mechas por volta) ou, com `curl`, calombos como cachos. A malha é uma esfera ou cápsula de raio 1.
+ */
+function texturize(geometry: BufferGeometry, { strands, amp, curl = 0 }: { strands: number; amp: number; curl?: number }): BufferGeometry {
+  const position = geometry.getAttribute("position");
+  const v = new Vector3();
+  for (let i = 0; i < position.count; i += 1) {
+    v.fromBufferAttribute(position, i);
+    const radius = v.length() || 1;
+    const azimuth = Math.atan2(v.x, v.z);
+    const height = v.y / radius;
+    // Mechas: ondas ao redor da cabeça que mudam devagar com a altura (as mechas serpenteiam um pouco).
+    const flow = 0.6 * Math.sin(azimuth * strands + height * 3) + 0.4 * Math.sin(azimuth * strands * 2.3 - height * 5);
+    // Cachos: calombos nos dois sentidos.
+    const bumps = curl ? Math.sin(azimuth * curl) * Math.sin(height * curl * 1.4 + azimuth) : 0;
+    v.multiplyScalar(1 + amp * flow + 0.09 * bumps);
+    position.setXYZ(i, v.x, v.y, v.z);
+  }
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 /** Cabelo feito de formas simples: estilos curtos, médio, longo e black power. */
-function HairPiece({ type, hair }: { type: BodyType; hair: Hair }) {
+function HairPiece({ type, style, color }: { type: BodyType; style: Hair["style"]; color: string }) {
   const { center, radii } = HEAD[type];
-  const material = useMemo(() => new MeshStandardMaterial({ color: hair.color, roughness: 0.55, metalness: 0.05 }), [hair.color]);
+  const material = useMemo(() => new MeshPhysicalMaterial({ color, roughness: 0.42, metalness: 0, clearcoat: 0.3, clearcoatRoughness: 0.45, sheen: 0.4, sheenRoughness: 0.4, sheenColor: lighten(color, 0.35) }), [color]);
   const parts = useMemo(() => {
     const [rx, ry, rz] = radii;
     const cap = (grow: number, cut: number) => {
-      const geometry = new SphereGeometry(1, 32, 20, 0, Math.PI * 2, 0, Math.PI * cut);
+      const geometry = texturize(new SphereGeometry(1, 96, 40, 0, Math.PI * 2, 0, Math.PI * cut), { strands: 26, amp: 0.016 });
       return { geometry, scale: [rx * grow, ry * grow, rz * grow] as [number, number, number], position: [center[0], center[1], center[2]] as [number, number, number] };
     };
     const back = (grow: number) => ({
-      geometry: new SphereGeometry(1, 28, 18),
+      geometry: texturize(new SphereGeometry(1, 96, 40), { strands: 26, amp: 0.02 }),
       scale: [rx * grow * 1.08, ry * grow * 0.95, rz * grow * 0.88] as [number, number, number],
       position: [center[0], center[1] - 0.03, center[2] - 0.03] as [number, number, number],
     });
     /** Mecha que cai de lado (para os cabelos longos), de `drop` metros abaixo do centro da cabeça. */
     const lock = (side: -1 | 1, drop: number) => ({
-      geometry: new CapsuleGeometry(0.03, drop, 6, 12),
+      geometry: texturize(new CapsuleGeometry(0.03, drop, 10, 32), { strands: 7, amp: 0.1 }),
       scale: [1, 1, 1.4] as [number, number, number],
       position: [center[0] + side * (rx + 0.012), center[1] - drop / 2 - 0.02, center[2] - 0.01] as [number, number, number],
     });
@@ -326,7 +349,7 @@ function HairPiece({ type, hair }: { type: BodyType; hair: Hair }) {
       scale: [1, 1, 1] as [number, number, number],
       position: [center[0] + offset[0], center[1] + offset[1], center[2] + offset[2]] as [number, number, number],
     });
-    switch (hair.style) {
+    switch (style) {
       case "crop":
         return [cap(1.03, 0.4)];
       case "cap":
@@ -338,7 +361,7 @@ function HairPiece({ type, hair }: { type: BodyType; hair: Hair }) {
           cap(1.08, 0.38),
           back(1.12),
           {
-            geometry: new CapsuleGeometry(0.085, 0.24, 6, 14),
+            geometry: texturize(new CapsuleGeometry(0.085, 0.24, 10, 40), { strands: 12, amp: 0.05 }),
             scale: [1, 1, 0.55] as [number, number, number],
             position: [center[0], center[1] - 0.2, center[2] - 0.07] as [number, number, number],
           },
@@ -350,13 +373,13 @@ function HairPiece({ type, hair }: { type: BodyType; hair: Hair }) {
       case "puff":
         return [
           {
-            geometry: new SphereGeometry(1, 32, 22),
+            geometry: texturize(new SphereGeometry(1, 96, 64), { strands: 10, amp: 0.02, curl: 14 }),
             scale: [0.128, 0.122, 0.128] as [number, number, number],
             position: [center[0], center[1] + 0.045, center[2] - 0.03] as [number, number, number],
           },
         ];
     }
-  }, [hair.style, center, radii]);
+  }, [style, center, radii]);
   useEffect(() => () => parts.forEach((part) => part.geometry.dispose()), [parts]);
   useEffect(() => () => material.dispose(), [material]);
 
@@ -369,80 +392,9 @@ function HairPiece({ type, hair }: { type: BodyType; hair: Hair }) {
   );
 }
 
-/**
- * Rosto simples: olhos, sobrancelhas, nariz e boca feitos de formas pequenas sobre a cabeça. As posições vêm
- * dos raios da cabeça (a superfície do elipsoide em cada ponto), então servem para os dois corpos.
- */
-function Face({ type, skinColor, lipColor, browColor }: { type: BodyType; skinColor: string; lipColor: string; browColor: string }) {
-  const { center, radii } = HEAD[type];
-  const [cx, cy, cz] = center;
-  const [rx, ry, rz] = radii;
-  /** Z da superfície da cabeça em (x, y) relativos ao centro. */
-  const surface = (x: number, y: number) => cz + rz * Math.sqrt(Math.max(1 - (x / rx) ** 2 - (y / ry) ** 2, 0.05));
-  const eyeY = cy + ry * 0.12;
-  const eyeX = rx * 0.4;
-  const noseY = cy - ry * 0.16;
-  const mouthY = cy - ry * 0.5;
-  const browY = cy + ry * 0.34;
-
-  const parts = useMemo(
-    () => ({
-      round: new SphereGeometry(1, 16, 12),
-      lip: new CapsuleGeometry(1, 1, 4, 10),
-    }),
-    [],
-  );
-  const materials = useMemo(
-    () => ({
-      white: new MeshStandardMaterial({ color: "#f7f4f0", roughness: 0.4 }),
-      iris: new MeshStandardMaterial({ color: "#3a2a1f", roughness: 0.25 }),
-      pupil: new MeshStandardMaterial({ color: "#0c0807", roughness: 0.2 }),
-      skin: new MeshStandardMaterial({ color: skinColor, roughness: 0.65 }),
-      lip: new MeshStandardMaterial({ color: lipColor, roughness: 0.45 }),
-      brow: new MeshStandardMaterial({ color: browColor, roughness: 0.8 }),
-    }),
-    [skinColor, lipColor, browColor],
-  );
-  useEffect(() => () => Object.values(parts).forEach((g) => g.dispose()), [parts]);
-  useEffect(() => () => Object.values(materials).forEach((m) => m.dispose()), [materials]);
-
-  return (
-    <group>
-      {([-1, 1] as const).map((side) => {
-        const x = side * eyeX;
-        const z = surface(x, eyeY - cy);
-        return (
-          <group key={side}>
-            <mesh geometry={parts.round} material={materials.white} position={[cx + x, eyeY, z - 0.003]} scale={[0.0145, 0.01, 0.009]} />
-            <mesh geometry={parts.round} material={materials.iris} position={[cx + x, eyeY, z + 0.0018]} scale={[0.0078, 0.0078, 0.005]} />
-            <mesh geometry={parts.round} material={materials.pupil} position={[cx + x, eyeY, z + 0.0042]} scale={[0.0036, 0.0036, 0.002]} />
-            <mesh
-              geometry={parts.lip}
-              material={materials.brow}
-              position={[cx + x, browY, surface(x, browY - cy) + 0.0005]}
-              rotation={[0, 0, Math.PI / 2 + side * 0.12]}
-              scale={[0.0036, 0.008, 0.0036]}
-            />
-          </group>
-        );
-      })}
-      <mesh geometry={parts.round} material={materials.skin} position={[cx, noseY, surface(0, noseY - cy) + 0.004]} scale={[0.011, 0.02, 0.016]} />
-      <mesh
-        geometry={parts.lip}
-        material={materials.lip}
-        position={[cx, mouthY, surface(0, mouthY - cy) + 0.0008]}
-        rotation={[0, 0, Math.PI / 2]}
-        scale={[0.0048, 0.014, 0.0048]}
-      />
-    </group>
-  );
-}
-
 type Props = {
   type: BodyType;
   skinColor: string;
-  /** Cor dos lábios, mais escura nos tons de pele escuros. */
-  lipColor: string;
   hair: Hair;
   /** Cor dos sapatos, que cobrem os pés. */
   shoes: string;
@@ -456,7 +408,7 @@ type Props = {
 const NO_OUTFIT: Outfit = {};
 
 /** Manequim com corpo esculpido (carregado de public/models), pele e cabelo próprios e roupas que vestem o corpo. */
-export function Mannequin({ type, skinColor, lipColor, hair, shoes, outfit = NO_OUTFIT, skin = true, garmentRef }: Props) {
+export function Mannequin({ type, skinColor, hair, shoes, outfit = NO_OUTFIT, skin = true, garmentRef }: Props) {
   const invalidate = useThree((state) => state.invalidate);
   const [body, setBody] = useState<BufferGeometry | null>(null);
 
@@ -478,17 +430,20 @@ export function Mannequin({ type, skinColor, lipColor, hair, shoes, outfit = NO_
     () =>
       new MeshPhysicalMaterial({
         color: skinColor,
-        roughness: 0.6,
+        roughness: 0.5,
         metalness: 0,
-        clearcoat: 0.1,
-        clearcoatRoughness: 0.45,
-        sheen: 0.4,
-        sheenRoughness: 0.45,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.35,
+        sheen: 0.25,
+        sheenRoughness: 0.5,
         sheenColor: lighten(skinColor, 0.3),
         vertexColors: true,
       }),
     [skinColor],
   );
+
+  // Cabelo do mesmo material do corpo, só mais escuro: o conjunto lê como escultura, sem cara de peruca.
+  const hairTone = useMemo(() => darken(skinColor, 0.3), [skinColor]);
 
   const items = useMemo(() => (body ? buildOutfit(body, type, outfit) : []), [body, type, outfit]);
   const materials = useMemo(() => items.map((item) => item.parts.map((part) => fabric(part.color, part.shaded, part.metal))), [items]);
@@ -520,8 +475,7 @@ export function Mannequin({ type, skinColor, lipColor, hair, shoes, outfit = NO_
         <>
           <mesh geometry={body} material={skinMaterial} />
           {shoeGeometry && <mesh geometry={shoeGeometry} material={shoeMaterial} />}
-          <HairPiece type={type} hair={hair} />
-          <Face type={type} skinColor={skinColor} lipColor={lipColor} browColor={hair.color} />
+          <HairPiece type={type} style={hair.style} color={hairTone} />
         </>
       )}
       <group ref={garmentRef}>

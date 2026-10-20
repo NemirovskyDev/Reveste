@@ -2,7 +2,7 @@
  * Contratos dos serviços. As telas só conhecem estas interfaces; hoje cada uma tem um adaptador
  * local (src/services/local), e quando o backend existir basta trocar a implementação em `index.ts`.
  */
-import type { Address, BrandContactInput, CardInput, LoginInput, SignUpInput } from "@/lib/validation";
+import type { Address, BrandContactInput, CardInput, DonationInput, LoginInput, SignUpInput } from "@/lib/validation";
 import type { RentalDays } from "@/lib/pricing";
 import type { Size } from "@/data/catalog";
 
@@ -20,7 +20,7 @@ export type OrderLine = {
   /** Texto pronto para exibir, ex.: "Zara Blazer estruturado". Guardado no pedido para não mudar se o catálogo mudar. */
   title: string;
   size: Size;
-  kind: "plan" | "rental";
+  kind: "plan" | "rental" | "purchase";
   /** Só no aluguel avulso. */
   days?: RentalDays;
   priceCents: number;
@@ -40,7 +40,7 @@ export type Order = {
   number: string;
   userId: string;
   createdAt: string;
-  kind: "plan" | "rental" | "mixed";
+  kind: "plan" | "rental" | "purchase" | "mixed";
   lines: OrderLine[];
   subtotalCents: number;
   shippingCents: number;
@@ -94,6 +94,7 @@ export type ShippingService = {
 
 export type LeadsService = {
   sendBrandContact(input: BrandContactInput): Promise<void>;
+  sendDonation(input: DonationInput): Promise<void>;
   subscribe(email: string): Promise<void>;
 };
 

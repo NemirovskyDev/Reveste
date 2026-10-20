@@ -67,6 +67,20 @@ export const FAQ: readonly FaqItem[] = [
       "Pode. O preço de compra é 70% do valor da peça, menos o aluguel líquido que você já pagou por ela. O valor nunca fica abaixo de zero.",
   },
   {
+    id: "comprar-avulso",
+    category: "aluguel",
+    question: "Posso comprar uma peça sem alugar antes?",
+    answer:
+      "Pode. Na página de cada peça há o botão Comprar, que vale para qualquer pessoa, com ou sem plano. O preço é 70% do valor da peça. Quem já alugou paga menos, porque o aluguel líquido pago é descontado.",
+  },
+  {
+    id: "doar-roupas",
+    category: "aluguel",
+    question: "Posso doar roupas para a Reveste sem ser uma empresa?",
+    answer:
+      "Pode. Qualquer pessoa pode doar. A cada 3 peças doadas você ganha um desconto de 15% a 50%, conforme o tipo das peças, que vale para alugar ou comprar. O cadastro está na página Doar roupas e o valor final é confirmado depois que a equipe confere as peças.",
+  },
+  {
     id: "escolher-tamanho",
     category: "aluguel",
     question: "Como escolho o tamanho certo?",

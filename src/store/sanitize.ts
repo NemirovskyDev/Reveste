@@ -5,7 +5,8 @@
 import { findPiece, SIZES, type Size } from "@/data/catalog";
 import { PLAN_SIZE, RENTAL_DAYS, type RentalDays } from "@/lib/pricing";
 
-export type CartLine = { pieceId: string; size: Size; days: RentalDays };
+/** `buy` marca a compra da peça; nela o prazo (`days`) não vale e fica no padrão só para manter o tipo simples. */
+export type CartLine = { pieceId: string; size: Size; days: RentalDays; buy?: boolean };
 export type PlanSlot = { pieceId: string; size: Size };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -26,10 +27,11 @@ export function sanitizeCart(raw: unknown): CartLine[] {
   for (const entry of raw) {
     if (!isRecord(entry)) continue;
     const base = validPieceAndSize(entry.pieceId, entry.size);
-    const days = entry.days as RentalDays;
+    const buy = entry.buy === true;
+    const days = (buy ? RENTAL_DAYS[0] : entry.days) as RentalDays;
     if (!base || !RENTAL_DAYS.includes(days) || seen.has(base.pieceId)) continue;
     seen.add(base.pieceId);
-    lines.push({ ...base, days });
+    lines.push(buy ? { ...base, days, buy } : { ...base, days });
   }
   return lines;
 }

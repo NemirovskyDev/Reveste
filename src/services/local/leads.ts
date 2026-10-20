@@ -1,6 +1,6 @@
 /** Contatos de marcas e inscrições, guardados localmente até haver backend de e-mail. */
 import { z } from "zod";
-import { brandContactSchema, emailSchema } from "@/lib/validation";
+import { brandContactSchema, donationSchema, emailSchema } from "@/lib/validation";
 import { ServiceError } from "../errors";
 import type { LeadsService } from "../types";
 import { readStoredList, writeStored } from "./storage";
@@ -17,6 +17,14 @@ export function createLocalLeads(now: () => Date = () => new Date()): LeadsServi
         throw new ServiceError("invalid-input", parsed.error.issues[0]?.message ?? "Confira os dados do contato.");
       }
       append("brand-contacts", { ...parsed.data, receivedAt: now().toISOString() });
+    },
+
+    async sendDonation(input) {
+      const parsed = donationSchema.safeParse(input);
+      if (!parsed.success) {
+        throw new ServiceError("invalid-input", parsed.error.issues[0]?.message ?? "Confira os dados da doação.");
+      }
+      append("donations", { ...parsed.data, receivedAt: now().toISOString() });
     },
 
     async subscribe(email) {

@@ -15,6 +15,8 @@ import { useSession } from "@/store/session";
 const TOP_NOTICES = [
   "Frete grátis na assinatura de 4 peças",
   "Escolha 4 peças por mês, use e devolva",
+  "Alugue, assine ou compre: escolha o seu jeito de vestir",
+  "Doe 3 roupas e ganhe de 15% a 50% de desconto",
   "Gostou? Compre descontando o que já pagou de aluguel",
 ] as const;
 

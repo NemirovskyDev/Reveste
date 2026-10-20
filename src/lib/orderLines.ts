@@ -3,7 +3,7 @@
  * O plano só entra quando está completo (4 peças); um plano pela metade fica de fora da conta.
  */
 import { getPiece } from "@/data/catalog";
-import { PLAN_SIZE, planLine, rentalCents } from "@/lib/pricing";
+import { PLAN_SIZE, buyoutCents, planLine, rentalCents } from "@/lib/pricing";
 import { pieceTitle } from "@/lib/piece";
 import type { CartLine, PlanSlot } from "@/store/sanitize";
 import type { OrderLine } from "@/services/types";
@@ -19,6 +19,10 @@ export type BagSummary = {
   planFullCents: number;
   planDiscountCents: number;
   rentalsCents: number;
+  /** Peças compradas (não alugadas): preço de compra de cada uma. */
+  purchasesCents: number;
+  rentalCount: number;
+  purchaseCount: number;
   subtotalCents: number;
   pieceCount: number;
   canCheckout: boolean;
@@ -29,7 +33,10 @@ export function summarizeBag(slots: readonly PlanSlot[], cart: readonly CartLine
   const planParts = slots.map((slot) => planLine(getPiece(slot.pieceId)));
   const sumOf = (key: "rental" | "discount" | "net") => planParts.reduce((sum, part) => sum + part[key], 0);
   const planCents = hasPlan ? sumOf("net") : 0;
-  const rentalsCents = cart.reduce((sum, line) => sum + rentalCents(getPiece(line.pieceId), line.days), 0);
+  const rentals = cart.filter((line) => !line.buy);
+  const purchases = cart.filter((line) => line.buy);
+  const rentalsCents = rentals.reduce((sum, line) => sum + rentalCents(getPiece(line.pieceId), line.days), 0);
+  const purchasesCents = purchases.reduce((sum, line) => sum + buyoutCents(getPiece(line.pieceId), 0), 0);
   return {
     hasPlan,
     pendingPlanSlots: hasPlan ? 0 : slots.length,
@@ -38,7 +45,10 @@ export function summarizeBag(slots: readonly PlanSlot[], cart: readonly CartLine
     planDiscountCents: hasPlan ? sumOf("discount") : 0,
     planCents,
     rentalsCents,
-    subtotalCents: planCents + rentalsCents,
+    purchasesCents,
+    rentalCount: rentals.length,
+    purchaseCount: purchases.length,
+    subtotalCents: planCents + rentalsCents + purchasesCents,
     pieceCount: (hasPlan ? PLAN_SIZE : 0) + cart.length,
     canCheckout: hasPlan || cart.length > 0,
   };
@@ -60,6 +70,16 @@ export function buildOrderLines(slots: readonly PlanSlot[], cart: readonly CartL
   }
   for (const line of cart) {
     const piece = getPiece(line.pieceId);
+    if (line.buy) {
+      lines.push({
+        pieceId: piece.id,
+        title: pieceTitle(piece),
+        size: line.size,
+        kind: "purchase",
+        priceCents: buyoutCents(piece, 0),
+      });
+      continue;
+    }
     lines.push({
       pieceId: piece.id,
       title: pieceTitle(piece),

@@ -450,7 +450,7 @@ export function CheckoutView() {
             <li key={`${line.kind}:${line.pieceId}`} className="flex justify-between gap-3">
               <span>
                 {line.title} · {line.size}
-                {line.kind === "rental" ? ` · ${line.days} dias` : ""}
+                {line.kind === "rental" ? ` · ${line.days} dias` : line.kind === "purchase" ? " · compra" : ""}
               </span>
               <span className="shrink-0 font-bold">{formatMoney(line.priceCents)}</span>
             </li>

@@ -3,6 +3,7 @@
  * As mensagens são escritas para quem digitou: dizem o que está errado e como corrigir.
  */
 import { z } from "zod";
+import { MAX_PER_CATEGORY } from "@/lib/donation";
 
 const MAX_YEARS_AHEAD = 20;
 
@@ -123,9 +124,27 @@ export const brandContactSchema = z.object({
     .max(1000, "Use no máximo 1.000 caracteres na mensagem."),
 });
 
+const donationCount = z.number({ error: "Digite um número." }).int("Use um número inteiro.").min(0).max(MAX_PER_CATEGORY, `Use até ${MAX_PER_CATEGORY} peças por tipo.`);
+
+export const donationSchema = z.object({
+  name: nameSchema,
+  email: emailSchema,
+  phone: optionalPhone,
+  city: z.string().trim().min(2, "Digite a cidade.").max(80),
+  state: stateSchema,
+  counts: z
+    .object({ basica: donationCount, casual: donationCount, marca: donationCount, elegante: donationCount })
+    .refine((counts) => Object.values(counts).some((qty) => qty > 0), { error: "Informe pelo menos 1 peça." }),
+  delivery: z.enum(["envio", "coleta"], { error: "Escolha como quer entregar as peças." }),
+  message: z.string().trim().max(500, "Use no máximo 500 caracteres na mensagem."),
+  conditionOk: z.literal(true, { error: "Confirme que as peças estão limpas e sem defeitos." }),
+  consent: z.literal(true, { error: "Aceite o uso dos dados para podermos responder." }),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type AddressInput = z.input<typeof addressSchema>;
 export type Address = z.output<typeof addressSchema>;
 export type CardInput = z.input<typeof cardSchema>;
 export type BrandContactInput = z.input<typeof brandContactSchema>;
+export type DonationInput = z.input<typeof donationSchema>;

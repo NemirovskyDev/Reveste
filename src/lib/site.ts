@@ -16,6 +16,7 @@ export const MAIN_NAV = [
   { href: "/catalogo", label: "Catálogo" },
   { href: "/assinatura", label: "Assinatura" },
   { href: "/#como-funciona", label: "Como funciona" },
+  { href: "/doar", label: "Doar roupas" },
   { href: "/marcas", label: "Para marcas" },
   { href: "/ajuda", label: "Ajuda" },
 ] as const;
@@ -28,6 +29,7 @@ export const FOOTER_NAV = [
       { href: "/assinatura", label: "Monte seu plano" },
       { href: "/sacola", label: "Sacola" },
       { href: "/conta", label: "Minha conta" },
+      { href: "/doar", label: "Doar roupas" },
     ],
   },
   {

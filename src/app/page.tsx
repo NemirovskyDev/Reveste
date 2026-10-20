@@ -12,6 +12,7 @@ import { RackBand } from "@/components/home/RackBand";
 import { PlanTeaser } from "@/components/home/PlanTeaser";
 import { ScrollAccents } from "@/components/home/ScrollAccents";
 import { StoreEntrance } from "@/components/home/StoreEntrance";
+import { WaysToWear } from "@/components/home/WaysToWear";
 import { Container } from "@/components/layout/Container";
 import { ButtonLink } from "@/components/ui/Button";
 import { CATALOG } from "@/data/catalog";
@@ -69,6 +70,8 @@ export default function Home() {
       <PlanTeaser />
       <PlanSimulator />
 
+      <WaysToWear />
+
       <RackBand />
 
       <Container as="section" aria-labelledby="destaques" className="py-16 md:py-24">
@@ -88,9 +91,29 @@ export default function Home() {
           Gostou da peça? Fique com ela.
         </h2>
         <p className="mb-10 max-w-2xl text-lg text-ink-soft md:text-xl">
-          O preço de compra é 70% do valor da peça, e o que você já pagou de aluguel é descontado.
+          Você pode comprar qualquer peça, mesmo sem ter alugado. O preço é 70% do valor da peça, e o que você já pagou
+          de aluguel é descontado.
         </p>
         <BuyoutCalculator />
+      </Container>
+
+      <Container as="section" aria-labelledby="doar-cta" className="py-16 md:py-24">
+        <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-8 rounded-card border-2 border-ink bg-peach p-8 md:p-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div>
+            <h2 id="doar-cta" className="text-[clamp(1.75rem,4vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.03em]">
+              Roupa parada no armário? Doe e ganhe desconto.
+            </h2>
+            <p className="mt-4 max-w-xl text-lg">
+              Não precisa ser uma empresa. A cada 3 peças doadas você ganha um desconto de 15% a 50%, conforme o tipo
+              das peças.
+            </p>
+          </div>
+          <div className="lg:justify-self-end">
+            <ButtonLink href="/doar" size="lg" variant="primary" iconAfter="arrow-right">
+              Quero doar
+            </ButtonLink>
+          </div>
+        </div>
       </Container>
 
       <Container as="section" aria-labelledby="marcas-cta" className="py-16 md:py-24">
