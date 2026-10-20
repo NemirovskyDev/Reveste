@@ -10,6 +10,7 @@ import { ManequimShowcase } from "@/components/home/ManequimShowcase";
 import { PlanSimulator } from "@/components/home/PlanSimulator";
 import { PlanTeaser } from "@/components/home/PlanTeaser";
 import { ScrollAccents } from "@/components/home/ScrollAccents";
+import { StoreEntrance } from "@/components/home/StoreEntrance";
 import { Container } from "@/components/layout/Container";
 import { ButtonLink } from "@/components/ui/Button";
 import { CATALOG } from "@/data/catalog";
@@ -54,6 +55,8 @@ export default function Home() {
       <HeroSection />
 
       <BrandMarquee />
+
+      <StoreEntrance />
 
       <ManequimShowcase />
 
