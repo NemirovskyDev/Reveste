@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { Logo } from "@/components/ui/Logo";
+import { MotionToggle } from "./MotionToggle";
 import { cn } from "@/lib/cn";
 import { MAIN_NAV } from "@/lib/site";
 import { useCart } from "@/store/cart";
@@ -56,7 +57,7 @@ export function Header() {
       className={cn("sticky top-0 z-40 bg-canvas transition-shadow duration-300", scrolled && "shadow-[0_1px_0_var(--color-line)]")}
     >
       {/* Faixa de avisos que corre; com movimento reduzido vira texto parado (ver .marquee no CSS). */}
-      <div className="overflow-hidden bg-peach py-2 text-sm font-medium">
+      <div className="relative overflow-hidden bg-peach py-2 text-sm font-medium">
         <div className="marquee" style={{ animationDuration: "40s" }}>
           {[false, true].map((copy) => (
             <ul key={String(copy)} aria-hidden={copy || undefined} className={`marquee-track ${copy ? "marquee-copy" : ""}`}>
@@ -69,6 +70,7 @@ export function Header() {
             </ul>
           ))}
         </div>
+        <MotionToggle variant="bar" />
       </div>
       <div className="mx-auto flex h-[4.5rem] w-full max-w-[82rem] items-center justify-between gap-4 px-5 md:px-8">
         <Logo />

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PieceCard } from "@/components/piece/PieceCard";
 import { Icon } from "@/components/ui/Icon";
 import type { Piece } from "@/data/catalog";
+import { readMotionOff } from "@/lib/motion";
 
 /** Carrossel com rolagem nativa e encaixe; os botões só ajudam quem não usa o gesto de arrastar. */
 export function FeaturedCarousel({ pieces, label }: { pieces: readonly Piece[]; label: string }) {
@@ -29,7 +30,7 @@ export function FeaturedCarousel({ pieces, label }: { pieces: readonly Piece[]; 
     const el = scroller.current;
     if (!el) return;
     if (direction === 1 ? edge.end : edge.start) return; // botão no limite: só avisa pelo aria-disabled
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = readMotionOff();
     el.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: reduced ? "auto" : "smooth" });
   }
 

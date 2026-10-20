@@ -30,8 +30,32 @@ function Look({ look, active, className }: { look: (typeof LOOKS)[number]; activ
   );
 }
 
-export function LookShowcase() {
-  const reduced = usePrefersReducedMotion();
+/** Versão sem rolagem presa: os três looks empilhados, tudo visível (animações desligadas). */
+function StaticLooks() {
+  return (
+    <section aria-labelledby="looks-titulo" className="mx-auto w-full max-w-[82rem] px-5 py-20 md:px-8 md:py-28">
+      <h2 id="looks-titulo" className="mb-10 max-w-3xl text-[clamp(2rem,4.6vw,3.75rem)] font-extrabold leading-[1.05] tracking-[-0.03em]">
+        Um look, várias peças.
+      </h2>
+      <div className="grid gap-12">
+        {LOOKS.map((look) => (
+          <div key={look.title} className="grid gap-4">
+            <p className="font-display text-2xl font-extrabold">{look.title}</p>
+            <div className="grid grid-cols-3 gap-3 md:gap-6">
+              {look.pieces.map((piece) => (
+                <div key={piece.id} className="rounded-card border-2 border-ink bg-cream p-2 md:p-4">
+                  <PieceImage piece={piece} className="aspect-[4/5] w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ScrollLooks() {
   const section = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
@@ -40,30 +64,6 @@ export function LookShowcase() {
     const next = Math.min(LOOKS.length - 1, Math.floor(value * LOOKS.length));
     setActive((current) => (current === next ? current : next));
   });
-
-  if (reduced) {
-    return (
-      <section aria-labelledby="looks-titulo" className="mx-auto w-full max-w-[82rem] px-5 py-20 md:px-8 md:py-28">
-        <h2 id="looks-titulo" className="mb-10 max-w-3xl text-[clamp(2rem,4.6vw,3.75rem)] font-extrabold leading-[1.05] tracking-[-0.03em]">
-          Um look, várias peças.
-        </h2>
-        <div className="grid gap-12">
-          {LOOKS.map((look) => (
-            <div key={look.title} className="grid gap-4">
-              <p className="font-display text-2xl font-extrabold">{look.title}</p>
-              <div className="grid grid-cols-3 gap-3 md:gap-6">
-                {look.pieces.map((piece) => (
-                  <div key={piece.id} className="rounded-card border-2 border-ink bg-cream p-2 md:p-4">
-                    <PieceImage piece={piece} className="aspect-[4/5] w-full" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section
@@ -93,4 +93,10 @@ export function LookShowcase() {
       </div>
     </section>
   );
+}
+
+/** `useScroll` só existe na versão com rolagem: sem o elemento observado ele reclama, então as duas são componentes separados. */
+export function LookShowcase() {
+  const reduced = usePrefersReducedMotion();
+  return reduced ? <StaticLooks /> : <ScrollLooks />;
 }

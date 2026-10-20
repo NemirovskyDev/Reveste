@@ -1,8 +1,9 @@
 "use client";
 
-import { useInView, useScroll } from "motion/react";
+import { useInView, useMotionValueEvent, useScroll } from "motion/react";
 import dynamic from "next/dynamic";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { LookChips } from "@/components/home/LookChips";
 import { LookShowcase } from "@/components/home/LookShowcase";
 import { useCanRender3D } from "@/components/three/capabilities";
 import { ButtonLink } from "@/components/ui/Button";
@@ -62,6 +63,9 @@ function ScrollSection() {
   const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
   // O giro só roda enquanto a cena está visível, para não gastar bateria com ela fora da tela.
   const visible = useInView(stage);
+  // Qual look está em cena (a troca acontece perto do meio da rolagem), para os chips mostrarem as peças certas.
+  const [look, setLook] = useState<0 | 1>(0);
+  useMotionValueEvent(scrollYProgress, "change", (value) => setLook(value >= 0.47 ? 1 : 0));
 
   return (
     <section ref={section} aria-labelledby="manequins-titulo" className="relative h-[300dvh]">
@@ -76,8 +80,11 @@ function ScrollSection() {
         <div className="mx-auto grid min-h-0 w-full max-w-[82rem] flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,0.85fr)_minmax(0,2.3fr)_minmax(0,0.85fr)] lg:grid-rows-1 lg:items-center lg:gap-6">
           <PriceHook className="hidden lg:block" />
 
-          <div ref={stage} aria-hidden="true" className="relative min-h-0 lg:h-full">
-            <ManequimStage progress={scrollYProgress} spinning={visible} />
+          <div className="flex min-h-0 flex-col lg:h-full">
+            <div ref={stage} aria-hidden="true" className="relative min-h-0 flex-1">
+              <ManequimStage progress={scrollYProgress} spinning={visible} />
+            </div>
+            <LookChips look={look} />
           </div>
 
           <div className="hidden lg:block">

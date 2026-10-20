@@ -13,6 +13,7 @@ import {
   type PerspectiveCamera,
   Vector2,
 } from "three";
+import { attachDragRotate, DRAG_RADIANS_PER_PIXEL } from "./drag";
 import { createGarmentMaterial, type GarmentUniforms } from "./garmentMaterial";
 import { createGarmentTextures, type GarmentTextures } from "./garmentTexture";
 import {
@@ -50,6 +51,8 @@ const GOLDEN_ANGLE = 2.399963;
 const MAX_FRAME_DT = 1 / 20;
 /** Giro de vitrine em repouso, em radianos por segundo (uma volta a cada ~40 s). */
 const IDLE_SPEED = 0.16;
+/** Velocidade com que o giro do arraste volta a zero depois de soltar (maior = mais rápido). */
+const DRAG_RETURN = 0.6;
 
 const SHADOW_RADIUS = 1.35;
 
@@ -216,6 +219,9 @@ export function RackScene({ progress, items }: RackSceneProps) {
     rotation: 0,
     /** Ângulo acumulado do giro de vitrine. */
     idle: 0,
+    /** Giro dado por quem arrasta o dedo ou o mouse; volta devagar a zero depois de soltar. */
+    drag: 0,
+    dragging: false,
     omega: 0,
     energy: 0.6,
     time: 0,
@@ -266,6 +272,33 @@ export function RackScene({ progress, items }: RackSceneProps) {
     });
   }, [progress, invalidate]);
 
+  // Giro por arraste: o gesto horizontal gira a arara; o vertical continua rolando a página.
+  useEffect(() => {
+    const m = motion.current;
+    return attachDragRotate(get().gl.domElement, {
+      onStart: () => {
+        m.dragging = true;
+        invalidate();
+      },
+      onMove: (dx) => {
+        m.drag += dx * DRAG_RADIANS_PER_PIXEL;
+        invalidate();
+      },
+      onEnd: () => {
+        m.dragging = false;
+        invalidate();
+      },
+    });
+  }, [get, invalidate]);
+
+  // Em telas de toque o giro contínuo pede no máximo ~30 quadros por segundo (poupa bateria e evita engasgos).
+  const throttled = useRef(false);
+  const timer = useRef(0);
+  useEffect(() => {
+    throttled.current = window.matchMedia("(pointer: coarse)").matches;
+    return () => window.clearTimeout(timer.current);
+  }, []);
+
   useFrame((_, rawDelta) => {
     if (!active.current) return;
     const rack = rackRef.current;
@@ -274,9 +307,12 @@ export function RackScene({ progress, items }: RackSceneProps) {
     // Limita o delta: ao voltar de uma aba oculta ele seria enorme e a arara "pularia".
     const dt = Math.min(Math.max(rawDelta, 1e-4), MAX_FRAME_DT);
 
-    // Giro suave e constante de vitrine, somado ao que vem da rolagem.
-    m.idle += dt * IDLE_SPEED;
-    const target = MathUtils.clamp(progress.get(), 0, 1) * TURNS * Math.PI * 2 + m.idle;
+    // Giro suave e constante de vitrine (pausado enquanto alguém arrasta), somado ao que vem da rolagem.
+    if (!m.dragging) {
+      m.idle += dt * IDLE_SPEED;
+      m.drag = MathUtils.damp(m.drag, 0, DRAG_RETURN, dt);
+    }
+    const target = MathUtils.clamp(progress.get(), 0, 1) * TURNS * Math.PI * 2 + m.idle + m.drag;
     if (!m.primed) {
       m.rotation = target; // primeira renderização já no ângulo certo, sem giro de entrada
       m.primed = true;
@@ -310,7 +346,16 @@ export function RackScene({ progress, items }: RackSceneProps) {
     }
 
     // O giro de vitrine nunca para, então pede sempre o próximo frame; fora da tela o loop já pausa (`active`).
-    invalidate();
+    if (throttled.current) {
+      if (!timer.current) {
+        timer.current = window.setTimeout(() => {
+          timer.current = 0;
+          invalidate();
+        }, 33);
+      }
+    } else {
+      invalidate();
+    }
   });
 
   return (

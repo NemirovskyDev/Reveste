@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from "react";
-
-const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+import { useMotionOff } from "@/lib/motion";
 
 type NavigatorWithMemory = Navigator & { deviceMemory?: number };
 
@@ -28,22 +27,19 @@ function isWeakDevice(): boolean {
   return false;
 }
 
-function subscribe(onChange: () => void): () => void {
-  const query = window.matchMedia(REDUCED_MOTION);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
+const subscribeNothing = () => () => {};
+
+function getCapable(): boolean {
+  return !isWeakDevice() && hasWebGL2();
 }
 
-function getSnapshot(): boolean {
-  return !window.matchMedia(REDUCED_MOTION).matches && !isWeakDevice() && hasWebGL2();
-}
-
-/** No servidor e na hidratação vale `false`: o HTML inicial já traz a versão estática. */
-function getServerSnapshot(): boolean {
-  return false;
-}
-
-/** `true` quando é seguro e desejável montar a cena WebGL. Reage a mudanças de reduced-motion. */
+/**
+ * `true` quando é seguro e desejável montar a cena WebGL: o aparelho aguenta e as animações não estão desligadas
+ * (pelo sistema ou pelo interruptor do site). No servidor e na hidratação vale `false`: o HTML inicial já traz a
+ * versão estática.
+ */
 export function useCanRender3D(): boolean {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const capable = useSyncExternalStore(subscribeNothing, getCapable, () => false);
+  const motionOff = useMotionOff();
+  return capable && !motionOff;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useMotionOff } from "@/lib/motion";
 
 /** Espaço do header fixo (6,75rem + folga), para o destino não ficar escondido embaixo dele. */
 const SCROLL_OFFSET = 112;
@@ -13,8 +14,9 @@ const SCROLL_OFFSET = 112;
  * As bibliotecas entram por import dinâmico: não pesam no JavaScript inicial de nenhuma página.
  */
 export function SmoothScroll() {
+  const motionOff = useMotionOff();
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (motionOff) return;
 
     let cancelled = false;
     let cleanup: (() => void) | undefined;
@@ -60,7 +62,7 @@ export function SmoothScroll() {
       cancelled = true;
       cleanup?.();
     };
-  }, []);
+  }, [motionOff]);
 
   return null;
 }

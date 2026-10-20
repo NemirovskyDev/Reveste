@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PlanSlots } from "@/components/plan/PlanSlots";
 import { PieceImage } from "@/components/piece/PieceImage";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/Field";
@@ -140,6 +141,7 @@ export function PlanBuilder() {
         <h2 id="resumo" tabIndex={-1} className="mb-4 text-2xl font-bold">
           Seu plano
         </h2>
+        <PlanSlots pieces={chosen.map((item) => item.piece)} />
         <ol className="mb-5 grid gap-2">
           {Array.from({ length: PLAN_SIZE }, (_, index) => {
             const item = chosen[index];
@@ -204,7 +206,7 @@ export function PlanBuilder() {
         </p>
 
         {full ? (
-          <ButtonLink href="/sacola" size="lg" block iconAfter="arrow-right">
+          <ButtonLink href="/sacola" size="lg" block iconAfter="arrow-right" className="cta-ready">
             Continuar com {formatMoney(quote.monthly)} ao mês
           </ButtonLink>
         ) : (

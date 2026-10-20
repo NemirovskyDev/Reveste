@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Hanken_Grotesk } from "next/font/google";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { SmoothScroll } from "@/components/layout/SmoothScroll";
+import { MOTION_INIT_SCRIPT } from "@/lib/motion";
 import { SITE_URL } from "@/lib/site";
 import { StoreHydrator } from "@/store/StoreHydrator";
 import "./globals.css";
@@ -43,7 +44,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`${bricolage.variable} ${hanken.variable}`}>
+    // suppressHydrationWarning: o script abaixo pode pôr data-motion no <html> antes do React hidratar.
+    <html lang="pt-BR" className={`${bricolage.variable} ${hanken.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: MOTION_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-dvh">
         <a
           href="#conteudo"

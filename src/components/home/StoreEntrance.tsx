@@ -6,6 +6,7 @@ import { Container } from "@/components/layout/Container";
 import { ButtonLink } from "@/components/ui/Button";
 import { assetUrl } from "@/lib/assets";
 import { useLightDevice } from "@/lib/useLightDevice";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 /** Duração do vídeo (s) enquanto ele não informa a própria; o arquivo entrada-loja.mp4 tem 10 s. */
@@ -61,8 +62,13 @@ function ScrubEntrance() {
   const video = useRef<HTMLVideoElement>(null);
   const target = useRef(0);
   const frame = useRef(0);
+  const stage = useRef<HTMLDivElement>(null);
   const near = useInView(section, { margin: "700px 0px 700px 0px", once: true });
+  const onStage = useInView(stage, { amount: 0.35 });
   const [ready, setReady] = useState(false);
+  // Em telas de toque o vídeo não é "pulado" pela rolagem (o arquivo não tem quadros-chave frequentes, então cada
+  // salto engasga): ele toca normalmente quando a seção aparece e volta ao início quando ela sai de cena.
+  const coarse = useMediaQuery("(pointer: coarse)");
 
   const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
 
@@ -85,6 +91,7 @@ function ScrubEntrance() {
   }, []);
 
   useMotionValueEvent(scrollYProgress, "change", (value) => {
+    if (coarse) return;
     const duration = video.current?.duration;
     const length = Number.isFinite(duration) && duration ? duration : FALLBACK_DURATION;
     const progress = Math.min(1, Math.max(0, (value - HOLD) / (1 - 2 * HOLD)));
@@ -94,6 +101,16 @@ function ScrubEntrance() {
 
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
+  useEffect(() => {
+    const el = video.current;
+    if (!el || !coarse || !near) return;
+    if (onStage) void el.play().catch(() => {});
+    else {
+      el.pause();
+      if (el.readyState > 0) el.currentTime = 0;
+    }
+  }, [coarse, near, onStage]);
+
   const first = useCaption(scrollYProgress, [0, 0.2, 0.3], [1, 1, 0]);
   const second = useCaption(scrollYProgress, [0.3, 0.4, 0.6, 0.7], [0, 1, 1, 0]);
   const third = useCaption(scrollYProgress, [0.7, 0.8, 1], [0, 1, 1]);
@@ -102,8 +119,8 @@ function ScrubEntrance() {
   useMotionValueEvent(scrollYProgress, "change", (value) => setLastActive(value > 0.72));
 
   return (
-    <section ref={section} aria-labelledby="entrada-titulo" className="relative h-[320dvh]">
-      <div className="sticky top-[6.75rem] h-[calc(100dvh-6.75rem)] overflow-hidden bg-ink">
+    <section ref={section} aria-labelledby="entrada-titulo" className={`relative ${coarse ? "h-[240dvh]" : "h-[320dvh]"}`}>
+      <div ref={stage} className="sticky top-[6.75rem] h-[calc(100dvh-6.75rem)] overflow-hidden bg-ink">
         {/* Capa: aparece enquanto o vídeo não carrega e some quando o primeiro quadro está pronto. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={POSTER_START} alt="" width={1600} height={893} decoding="async" className="absolute inset-0 size-full object-cover" />

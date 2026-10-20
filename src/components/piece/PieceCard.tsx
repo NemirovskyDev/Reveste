@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PieceImage } from "@/components/piece/PieceImage";
 import { LabelTag } from "@/components/ui/LabelTag";
+import { QuickAddButton } from "@/components/piece/QuickAddButton";
 import { Tilt } from "@/components/ui/Tilt";
 import { TIER_LABEL, type Piece } from "@/data/catalog";
 import { formatMoney } from "@/lib/format";
@@ -32,6 +33,8 @@ export function PieceCard({ piece, priority = false }: { piece: Piece; priority?
           </p>
         </div>
       </Link>
+      {/* Fora do <Link> (um botão dentro de link não é válido); fica por cima do canto da etiqueta. */}
+      <QuickAddButton piece={piece} className="absolute right-3 top-8 z-10 bg-canvas/95 shadow-sm" />
     </article>
   );
 }

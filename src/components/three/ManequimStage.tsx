@@ -4,86 +4,13 @@ import { ContactShadows, Environment, Lightformer } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { MathUtils, type Group, type Material, type PerspectiveCamera } from "three";
-import { getPiece } from "@/data/catalog";
-import { GARMENT_PHOTO_COLOR } from "./garmentPhotos";
-import { Mannequin, type BodyType, type Garment, type Hair, type Outfit } from "./Mannequin";
+import { useMediaQuery } from "@/lib/useMediaQuery";
+import { CAST } from "./cast";
+import { Mannequin } from "./Mannequin";
+import { attachDragRotate, DRAG_RADIANS_PER_PIXEL } from "./drag";
 import type { ProgressSource } from "./types";
 
-/** Peça do catálogo como roupa do manequim: cor média da foto (para a roupa lisa combinar) e a própria foto. */
-const wear = (id: string): Garment => ({ color: GARMENT_PHOTO_COLOR[id] ?? getPiece(id).color, photo: id });
 
-type Person = {
-  id: string;
-  type: BodyType;
-  skin: string;
-  lip: string;
-  hair: Hair;
-  /** Cor dos sapatos. */
-  shoes: string;
-  /** Proporção desta pessoa: largura e altura em relação ao corpo-base. */
-  build: { w: number; h: number };
-  /** Primeiro look (sai) e segundo look (entra). */
-  looks: [Outfit, Outfit];
-};
-
-/**
- * Elenco: duas mulheres e dois homens, brancos e negros. Cada par vizinho (0 e 1, 2 e 3) troca de lugar
- * enquanto as roupas mudam.
- */
-const CAST: readonly Person[] = [
-  {
-    id: "mulher-branca",
-    type: "female",
-    skin: "#f0c9ae",
-    lip: "#c4756c",
-    shoes: "#f3f1ec",
-    build: { w: 0.97, h: 1 },
-    hair: { style: "long", color: "#e2c17a" },
-    looks: [
-      { dress: { ...wear("renner-vestido"), hemY: 0.5, hemRadius: 0.27, fold: { count: 16, amp: 0.03 } } },
-      { top: { ...wear("zara-blazer"), sleeve: "long" }, skirt: { ...wear("farm-saia"), hemY: 0.5, hemRadius: 0.3, fold: { count: 12, amp: 0.04 } } },
-    ],
-  },
-  {
-    id: "homem-negro",
-    type: "male",
-    skin: "#6a4330",
-    lip: "#4a2a22",
-    shoes: "#efece6",
-    build: { w: 1.02, h: 1.05 },
-    hair: { style: "crop", color: "#17110e" },
-    looks: [
-      { top: { ...wear("ca-camisa"), sleeve: "short" }, bottom: wear("riachuelo-calca") },
-      { top: { ...wear("ca-jaqueta"), sleeve: "long" }, bottom: wear("mango-calca") },
-    ],
-  },
-  {
-    id: "mulher-negra",
-    type: "female",
-    skin: "#5d3b2a",
-    lip: "#45241d",
-    shoes: "#b98763",
-    build: { w: 1.05, h: 1.03 },
-    hair: { style: "puff", color: "#17110e" },
-    looks: [
-      { dress: { ...wear("farm-vestido"), hemY: 0.1, hemRadius: 0.34, fold: { count: 18, amp: 0.035 } } },
-      { top: { ...wear("renner-blazer"), sleeve: "long" }, skirt: { ...wear("ca-saia"), hemY: 0.55, hemRadius: 0.28, fold: { count: 44, amp: 0.022 } } },
-    ],
-  },
-  {
-    id: "homem-branco",
-    type: "male",
-    skin: "#efc7a8",
-    lip: "#b9685f",
-    shoes: "#5a3d2b",
-    build: { w: 0.98, h: 1 },
-    hair: { style: "cap", color: "#8a4b2a" },
-    looks: [
-      { top: { ...wear("riachuelo-camisa"), sleeve: "long" }, bottom: wear("renner-calca") },
-      { top: { ...wear("zara-camisa"), sleeve: "long" }, bottom: wear("mango-calca") },
-    ],
-  },
-];
 
 /** Posição de cada pessoa em X (m) e quais duas trocam de lugar entre si. */
 const SLOT_X = [-1.35, -0.45, 0.45, 1.35] as const;
@@ -122,8 +49,11 @@ function setGarment(group: Group | null, amount: number, direction: 1 | -1) {
   });
 }
 
-function Scene({ progress, spinning }: { progress: ProgressSource; spinning: boolean }) {
+function Scene({ progress, spinning, throttle }: { progress: ProgressSource; spinning: boolean; throttle: boolean }) {
   const spin = useRef(0);
+  /** Giro dado por quem arrasta o dedo ou o mouse; volta devagar a zero depois de soltar. */
+  const drag = useRef({ offset: 0, active: false });
+  const timer = useRef(0);
   const invalidate = useThree((state) => state.invalidate);
   const camera = useThree((state) => state.camera) as PerspectiveCamera;
   const aspect = useThree((state) => state.size.width / Math.max(state.size.height, 1));
@@ -143,9 +73,35 @@ function Scene({ progress, spinning }: { progress: ProgressSource; spinning: boo
   // O modo `demand` não renderiza sozinho: cada mudança de progresso pede um frame.
   useEffect(() => progress.on("change", invalidate), [progress, invalidate]);
 
+  // Giro por arraste: o gesto horizontal gira todos; o vertical continua rolando a página (touch-action: pan-y).
+  const domElement = useThree((state) => state.gl.domElement);
+  useEffect(() => {
+    const state = drag.current;
+    const detach = attachDragRotate(domElement, {
+      onStart: () => {
+        state.active = true;
+        invalidate();
+      },
+      onMove: (dx) => {
+        state.offset += dx * DRAG_RADIANS_PER_PIXEL;
+        invalidate();
+      },
+      onEnd: () => {
+        state.active = false;
+        invalidate();
+      },
+    });
+    return () => {
+      detach();
+      window.clearTimeout(timer.current);
+    };
+  }, [domElement, invalidate]);
+
   useFrame((state, delta) => {
-    // O giro só avança enquanto a cena está na tela (spinning); fora dela o ângulo fica parado.
-    if (spinning) spin.current = (spin.current + Math.min(delta, 0.1) * SPIN_SPEED) % (Math.PI * 2);
+    // O giro só avança enquanto a cena está na tela (spinning) e ninguém arrasta; fora dela o ângulo fica parado.
+    if (spinning && !drag.current.active) spin.current = (spin.current + Math.min(delta, 0.1) * SPIN_SPEED) % (Math.PI * 2);
+    if (!drag.current.active) drag.current.offset = MathUtils.damp(drag.current.offset, 0, 0.6, Math.min(delta, 0.1));
+    const yaw = spin.current + drag.current.offset;
     const time = spinning ? state.clock.elapsedTime : 0;
     const p = MathUtils.clamp(progress.get(), 0, 1);
     // Cada par troca de lugar num arco: um passa pela frente e o outro por trás.
@@ -164,11 +120,11 @@ function Scene({ progress, spinning }: { progress: ProgressSource; spinning: boo
       const b = figures.current[right];
       if (a) {
         a.position.set(center - half * Math.cos(angle), bob, depth);
-        a.rotation.set(0, 0.25 + swing * 0.35 + spin.current, sway);
+        a.rotation.set(0, 0.25 + swing * 0.35 + yaw, sway);
       }
       if (b) {
         b.position.set(center + half * Math.cos(angle), -bob, -depth);
-        b.rotation.set(0, -0.25 - swing * 0.35 - spin.current, -sway);
+        b.rotation.set(0, -0.25 - swing * 0.35 - yaw, -sway);
       }
     });
 
@@ -179,6 +135,14 @@ function Scene({ progress, spinning }: { progress: ProgressSource; spinning: boo
       setGarment(refs.a, out, 1);
       setGarment(refs.b, enter, -1);
     });
+
+    // Em telas de toque o giro contínuo pede no máximo ~30 quadros por segundo; o arraste devolvendo também precisa de quadros.
+    if (throttle && (spinning || Math.abs(drag.current.offset) > 0.001) && !timer.current) {
+      timer.current = window.setTimeout(() => {
+        timer.current = 0;
+        invalidate();
+      }, 33);
+    }
   });
 
   return (
@@ -227,14 +191,16 @@ function Scene({ progress, spinning }: { progress: ProgressSource; spinning: boo
 }
 
 export function ManequimStage({ progress, spinning = false }: { progress: ProgressSource; spinning?: boolean }) {
+  // Em telas de toque: resolução menor e giro limitado a ~30 quadros por segundo.
+  const coarse = useMediaQuery("(pointer: coarse)");
   return (
     <Canvas
-      frameloop={spinning ? "always" : "demand"}
-      dpr={[1, 1.75]}
+      frameloop={spinning && !coarse ? "always" : "demand"}
+      dpr={coarse ? [1, 1.25] : [1, 1.75]}
       camera={{ position: [0, 1.0, 5.4], fov: 30 }}
       gl={{ antialias: true, alpha: true }}
     >
-      <Scene progress={progress} spinning={spinning} />
+      <Scene progress={progress} spinning={spinning} throttle={coarse} />
     </Canvas>
   );
 }

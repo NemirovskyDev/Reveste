@@ -5,6 +5,7 @@ import { PieceImage } from "@/components/piece/PieceImage";
 import { Icon } from "@/components/ui/Icon";
 import { findPiece } from "@/data/catalog";
 import { getGsap } from "@/lib/gsap";
+import { useMotionOff } from "@/lib/motion";
 
 const PICKS = ["zara-blazer", "renner-vestido", "ca-camisa", "farm-saia"].map((id) => findPiece(id)!);
 
@@ -81,8 +82,11 @@ export function HowItWorks() {
   const section = useRef<HTMLElement>(null);
   const track = useRef<HTMLOListElement>(null);
   const bar = useRef<HTMLDivElement>(null);
+  const motionOff = useMotionOff();
 
   useEffect(() => {
+    // Animações desligadas no site: os passos ficam empilhados, sem a seção presa (o CSS `pin:` também recua).
+    if (motionOff) return;
     const { gsap } = getGsap();
     const matchMedia = gsap.matchMedia();
 
@@ -104,7 +108,7 @@ export function HowItWorks() {
     });
 
     return () => matchMedia.revert();
-  }, []);
+  }, [motionOff]);
 
   return (
     <section

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { FOOTER_NAV } from "@/lib/site";
+import { MotionToggle } from "./MotionToggle";
 import { NewsletterForm } from "./NewsletterForm";
 
 export function Footer() {
@@ -15,6 +16,9 @@ export function Footer() {
           <div className="mt-2 max-w-sm">
             <h2 className="mb-3 font-display text-xl font-bold">Receba as novidades</h2>
             <NewsletterForm />
+          </div>
+          <div className="mt-4">
+            <MotionToggle variant="footer" />
           </div>
         </div>
 

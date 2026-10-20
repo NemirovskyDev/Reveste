@@ -3,6 +3,7 @@
 import { Component, useState, type ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
 import { ACESFilmicToneMapping, SRGBColorSpace } from "three";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 import { useCanRender3D } from "./capabilities";
 import { FRAMING } from "./rackConfig";
 import { RackFallback } from "./RackFallback";
@@ -32,6 +33,8 @@ class SceneBoundary extends Component<{ fallback: ReactNode; children: ReactNode
  */
 export function RackCanvas({ progress, items, className }: RackCanvasProps) {
   const canRender3D = useCanRender3D();
+  // Em telas de toque, resolução menor: poupa GPU e bateria com pouca diferença visível.
+  const coarse = useMediaQuery("(pointer: coarse)");
   const [contextLost, setContextLost] = useState(false);
   const fallback = <RackFallback items={items} className="h-full w-full" />;
   const wrapperClass = `relative ${className ?? ""}`.trim();
@@ -45,12 +48,12 @@ export function RackCanvas({ progress, items, className }: RackCanvasProps) {
   }
 
   return (
-    // pointer-events-none: a cena é decorativa e não deve capturar rolagem/toque da página.
-    <div className={`${wrapperClass} pointer-events-none`} aria-hidden="true">
+    // A cena aceita arraste horizontal para girar (touch-action: pan-y deixa o gesto vertical rolar a página).
+    <div className={wrapperClass} aria-hidden="true">
       <SceneBoundary fallback={fallback}>
         <Canvas
           frameloop="demand"
-          dpr={[1, 1.75]}
+          dpr={coarse ? [1, 1.25] : [1, 1.75]}
           camera={{ fov: FRAMING.fov, near: 0.1, far: 60, position: [0, 2.2, 8] }}
           gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
           tabIndex={-1}

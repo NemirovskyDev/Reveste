@@ -1,7 +1,14 @@
 @import "tailwindcss";
 
 /* Seção "Como funciona" presa e na horizontal: só com largura e altura de sobra e sem pedido de menos movimento. */
-@custom-variant pin (@media (min-width: 64rem) and (min-height: 43.75rem) and (prefers-reduced-motion: no-preference));
+/* Seção "Como funciona" presa na rolagem: só em tela grande e com animações ligadas (sistema e interruptor do site). */
+@custom-variant pin {
+  @media (min-width: 64rem) and (min-height: 43.75rem) and (prefers-reduced-motion: no-preference) {
+    &:where(:root:not([data-motion="off"]) *) {
+      @slot;
+    }
+  }
+}
 
 /* Identidade Reveste: pastéis suaves, grafite no texto, etiqueta de roupa como motivo. */
 @theme {
@@ -299,4 +306,51 @@ html.lenis body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Mesmas regras do movimento reduzido, para quem desliga as animações pelo interruptor do site (html[data-motion="off"]). */
+:root[data-motion="off"] .marquee {
+  width: auto;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: none;
+}
+
+:root[data-motion="off"] .marquee-copy {
+  display: none;
+}
+
+:root[data-motion="off"] .tilt {
+  transform: none !important;
+}
+
+:root[data-motion="off"] {
+  scroll-behavior: auto;
+}
+
+:root[data-motion="off"] .reveal-pending {
+  opacity: 1;
+  transform: none;
+}
+
+:root[data-motion="off"] *,
+:root[data-motion="off"] *::before,
+:root[data-motion="off"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Plano completo: o botão de continuar ganha um anel que pulsa duas vezes para chamar a atenção. */
+@keyframes cta-ready {
+  0% {
+    box-shadow: 0 0 0 0 rgb(207 232 220 / 0.95);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgb(207 232 220 / 0);
+  }
+}
+
+.cta-ready {
+  animation: cta-ready 1.1s ease-out 2;
 }

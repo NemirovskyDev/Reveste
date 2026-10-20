@@ -1,8 +1,11 @@
 "use client";
 
-import { useMediaQuery } from "./useMediaQuery";
+import { useMotionOff } from "./motion";
 
-/** Preferência de "reduzir movimento" do sistema (falsa no servidor e na hidratação; ver `useMediaQuery`). */
+/**
+ * Quando as animações devem ficar desligadas: o sistema pediu menos movimento ou a pessoa desligou no site
+ * (falso no servidor e na hidratação; ver `useMotionOff`).
+ */
 export function usePrefersReducedMotion(): boolean {
-  return useMediaQuery("(prefers-reduced-motion: reduce)");
+  return useMotionOff();
 }
