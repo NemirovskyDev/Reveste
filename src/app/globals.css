@@ -113,20 +113,51 @@ html.lenis body {
   transform: translateY(1.75rem);
 }
 
-/* Transição entre páginas: o template do App Router remonta a cada navegação. */
-@keyframes page-enter {
+/* Transição entre páginas (View Transitions): a antiga some rápido, a nova sobe e aparece. O header fica parado. */
+@keyframes page-fade {
   from {
     opacity: 0;
-    transform: translateY(0.75rem);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
-.page-enter {
-  animation: page-enter 0.6s var(--ease-out-expo) both;
+@keyframes page-rise {
+  from {
+    translate: 0 1.25rem;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+::view-transition-old(.page-out) {
+  animation: 180ms ease-in both page-fade reverse;
+}
+
+::view-transition-new(.page-in) {
+  animation:
+    420ms var(--ease-out-expo) 120ms both page-fade,
+    620ms var(--ease-out-expo) 120ms both page-rise;
+}
+
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(site-header) {
+  display: none;
+}
+
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* Cliques durante a transição passam para a página de verdade. */
+::view-transition {
+  pointer-events: none;
 }
 
 /* Microinterações: o contador da sacola "pula" a cada mudança; a marca de escolha aparece com um estalo. */
@@ -254,8 +285,11 @@ html.lenis body {
     transform: none;
   }
 
-  .page-enter {
-    animation: none;
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 
   *,

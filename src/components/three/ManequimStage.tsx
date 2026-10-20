@@ -39,7 +39,11 @@ function setGarment(group: Group | null, scale: number) {
   group.position.y = BODY_CENTER_Y * (1 - s);
 }
 
-function Scene({ progress }: { progress: ProgressSource }) {
+/** Giro contínuo de vitrine, em radianos por segundo. */
+const SPIN_SPEED = 0.5;
+
+function Scene({ progress, spinning }: { progress: ProgressSource; spinning: boolean }) {
+  const spin = useRef(0);
   const invalidate = useThree((state) => state.invalidate);
   const camera = useThree((state) => state.camera) as PerspectiveCamera;
 
@@ -62,7 +66,9 @@ function Scene({ progress }: { progress: ProgressSource }) {
   // O modo `demand` não renderiza sozinho: cada mudança de progresso pede um frame.
   useEffect(() => progress.on("change", invalidate), [progress, invalidate]);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
+    // O giro só avança enquanto a cena está na tela (spinning); fora dela o ângulo fica parado.
+    if (spinning) spin.current = (spin.current + Math.min(delta, 0.1) * SPIN_SPEED) % (Math.PI * 2);
     const p = MathUtils.clamp(progress.get(), 0, 1);
     // Os manequins trocam de lado num arco: um passa pela frente e o outro por trás.
     const t = MathUtils.smoothstep(p, 0.12, 0.88);
@@ -71,11 +77,11 @@ function Scene({ progress }: { progress: ProgressSource }) {
 
     if (female.current) {
       female.current.position.set(-SPREAD * Math.cos(angle), 0, ARC_DEPTH * swing);
-      female.current.rotation.y = 0.25 + swing * 0.35;
+      female.current.rotation.y = 0.25 + swing * 0.35 + spin.current;
     }
     if (male.current) {
       male.current.position.set(SPREAD * Math.cos(angle), 0, -ARC_DEPTH * swing);
-      male.current.rotation.y = -0.25 - swing * 0.35;
+      male.current.rotation.y = -0.25 - swing * 0.35 - spin.current;
     }
 
     // O look antigo sai, há uma pausa com o corpo à mostra, e o novo entra.
@@ -108,15 +114,15 @@ function Scene({ progress }: { progress: ProgressSource }) {
   );
 }
 
-export function ManequimStage({ progress }: { progress: ProgressSource }) {
+export function ManequimStage({ progress, spinning = false }: { progress: ProgressSource; spinning?: boolean }) {
   return (
     <Canvas
-      frameloop="demand"
+      frameloop={spinning ? "always" : "demand"}
       dpr={[1, 1.75]}
       camera={{ position: [0, 1.0, 5.4], fov: 30 }}
       gl={{ antialias: true, alpha: true }}
     >
-      <Scene progress={progress} />
+      <Scene progress={progress} spinning={spinning} />
     </Canvas>
   );
 }

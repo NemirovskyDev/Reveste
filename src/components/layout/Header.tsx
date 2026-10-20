@@ -45,7 +45,10 @@ export function Header() {
   const accountLabel = user ? `Olá, ${user.name.split(" ")[0]}` : "Entrar";
 
   return (
-    <header className={cn("sticky top-0 z-40 bg-canvas transition-shadow duration-300", scrolled && "shadow-[0_1px_0_var(--color-line)]")}>
+    <header
+      style={{ viewTransitionName: "site-header" }}
+      className={cn("sticky top-0 z-40 bg-canvas transition-shadow duration-300", scrolled && "shadow-[0_1px_0_var(--color-line)]")}
+    >
       <p className="bg-peach px-4 py-2 text-center text-sm font-medium">
         Frete grátis na assinatura de 4 peças.
       </p>
