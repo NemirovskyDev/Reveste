@@ -1,8 +1,9 @@
 "use client";
 
+import { ContactShadows, Environment, Lightformer } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { MathUtils, type Group, type PerspectiveCamera } from "three";
+import { MathUtils, type Group, type Material, type PerspectiveCamera } from "three";
 import { getPiece } from "@/data/catalog";
 import { Mannequin, type Outfit } from "./Mannequin";
 import type { ProgressSource } from "./types";
@@ -22,25 +23,34 @@ const LOOK_B: { female: Outfit; male: Outfit } = {
 /** Meia distância entre os manequins e profundidade do arco da troca, em metros. */
 const SPREAD = 0.75;
 const ARC_DEPTH = 0.4;
-/** Altura do centro do corpo: as roupas encolhem e crescem em torno dela, não do piso. */
-const BODY_CENTER_Y = 0.9;
-
 /** Largura da cena que sempre deve caber (dois manequins mais o arco da troca) e distância mínima da câmera. */
 const FIT_WIDTH = 2.7;
 const MIN_DISTANCE = 5.4;
+/** Giro contínuo de vitrine, em radianos por segundo. */
+const SPIN_SPEED = 0.5;
+/** Quanto a roupa sobe (ao sair) ou sobe de baixo (ao entrar) enquanto some ou aparece, em metros. */
+const DRIFT = 0.07;
 
 type GarmentRefs = { a: Group | null; b: Group | null };
 
-function setGarment(group: Group | null, scale: number) {
+/**
+ * Mostra uma roupa com opacidade `amount` (0 a 1): ela esmaece e desliza um pouco em vez de encolher.
+ * `direction` define para onde ela se afasta (1 = sobe ao sair, -1 = vem de baixo ao entrar).
+ */
+function setGarment(group: Group | null, amount: number, direction: 1 | -1) {
   if (!group) return;
-  const s = Math.max(scale, 0.0001);
-  group.visible = scale > 0.001;
-  group.scale.setScalar(s);
-  group.position.y = BODY_CENTER_Y * (1 - s);
+  const opacity = MathUtils.clamp(amount, 0, 1);
+  group.visible = opacity > 0.01;
+  group.position.y = (1 - opacity) * DRIFT * direction;
+  group.traverse((object) => {
+    const material = (object as { material?: Material | Material[] }).material;
+    if (!material || Array.isArray(material)) return;
+    material.transparent = opacity < 0.999;
+    material.opacity = opacity;
+    // Só escreve profundidade quando totalmente opaca, para o fade não "recortar" o corpo atrás.
+    material.depthWrite = opacity >= 0.999;
+  });
 }
-
-/** Giro contínuo de vitrine, em radianos por segundo. */
-const SPIN_SPEED = 0.5;
 
 function Scene({ progress, spinning }: { progress: ProgressSource; spinning: boolean }) {
   const spin = useRef(0);
@@ -66,42 +76,56 @@ function Scene({ progress, spinning }: { progress: ProgressSource; spinning: boo
   // O modo `demand` não renderiza sozinho: cada mudança de progresso pede um frame.
   useEffect(() => progress.on("change", invalidate), [progress, invalidate]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     // O giro só avança enquanto a cena está na tela (spinning); fora dela o ângulo fica parado.
     if (spinning) spin.current = (spin.current + Math.min(delta, 0.1) * SPIN_SPEED) % (Math.PI * 2);
+    const time = spinning ? state.clock.elapsedTime : 0;
     const p = MathUtils.clamp(progress.get(), 0, 1);
     // Os manequins trocam de lado num arco: um passa pela frente e o outro por trás.
     const t = MathUtils.smoothstep(p, 0.12, 0.88);
     const angle = Math.PI * t;
     const swing = Math.sin(angle);
 
+    // Balanço de peso quase imperceptível: tira a rigidez de estátua sem distrair.
+    const sway = Math.sin(time * 0.9) * 0.012;
+    const bob = Math.sin(time * 1.6) * 0.004;
+
     if (female.current) {
-      female.current.position.set(-SPREAD * Math.cos(angle), 0, ARC_DEPTH * swing);
-      female.current.rotation.y = 0.25 + swing * 0.35 + spin.current;
+      female.current.position.set(-SPREAD * Math.cos(angle), bob, ARC_DEPTH * swing);
+      female.current.rotation.set(0, 0.25 + swing * 0.35 + spin.current, sway);
     }
     if (male.current) {
-      male.current.position.set(SPREAD * Math.cos(angle), 0, -ARC_DEPTH * swing);
-      male.current.rotation.y = -0.25 - swing * 0.35 - spin.current;
+      male.current.position.set(SPREAD * Math.cos(angle), -bob, -ARC_DEPTH * swing);
+      male.current.rotation.set(0, -0.25 - swing * 0.35 - spin.current, -sway);
     }
 
     // O look antigo sai, há uma pausa com o corpo à mostra, e o novo entra.
     const out = 1 - MathUtils.smoothstep(p, 0.25, 0.42);
     const enter = MathUtils.smoothstep(p, 0.52, 0.7);
-    setGarment(femaleGarments.current.a, out);
-    setGarment(femaleGarments.current.b, enter);
-    setGarment(maleGarments.current.a, out);
-    setGarment(maleGarments.current.b, enter);
+    setGarment(femaleGarments.current.a, out, 1);
+    setGarment(femaleGarments.current.b, enter, -1);
+    setGarment(maleGarments.current.a, out, 1);
+    setGarment(maleGarments.current.b, enter, -1);
   });
 
   return (
     <>
-      <hemisphereLight args={["#ffffff", "#d9cfee", 0.9]} />
-      <directionalLight position={[2.5, 4, 3]} intensity={1.6} color="#fffaf4" />
-      <directionalLight position={[-3, 2, -2]} intensity={0.6} color="#e6dcff" />
+      {/* Ambiente de estúdio montado com painéis de luz: nada é baixado da internet e é calculado uma única vez. */}
+      <Environment resolution={256} frames={1} environmentIntensity={0.85}>
+        <Lightformer form="rect" intensity={2.4} color="#fffaf4" position={[0, 5, 3]} scale={[9, 4, 1]} target={[0, 1, 0]} />
+        <Lightformer form="rect" intensity={1} color="#e6dcff" position={[-5, 2, -1]} scale={[3, 6, 1]} target={[0, 1, 0]} />
+        <Lightformer form="rect" intensity={1.2} color="#ffe9d6" position={[5, 1.5, 2]} scale={[2.5, 5, 1]} target={[0, 1, 0]} />
+        <Lightformer form="rect" intensity={0.8} color="#ffffff" position={[0, 1, -5]} scale={[8, 3, 1]} target={[0, 1, 0]} />
+      </Environment>
+      <hemisphereLight args={["#ffffff", "#d9cfee", 0.35]} />
+      <directionalLight position={[2.5, 4, 3]} intensity={1.1} color="#fffaf4" />
+      <directionalLight position={[-3, 2, -2]} intensity={0.35} color="#e6dcff" />
       <mesh position={[0, -0.005, 0]} rotation-x={-Math.PI / 2} scale={[1.7, 1, 1]}>
         <circleGeometry args={[0.95, 48]} />
         <meshBasicMaterial color="#d9ccf0" transparent opacity={0.45} />
       </mesh>
+      {/* Sombra suave de contato embaixo dos pés: ancora os manequins no chão. */}
+      <ContactShadows position={[0, 0.002, 0]} opacity={0.5} scale={5} blur={2.6} far={1.4} resolution={512} color="#4b3f63" />
       <group ref={female}>
         <Mannequin type="female" outfit={LOOK_A.female} garmentRef={(node) => void (femaleGarments.current.a = node)} />
         <Mannequin type="female" skin={false} outfit={LOOK_B.female} garmentRef={(node) => void (femaleGarments.current.b = node)} />

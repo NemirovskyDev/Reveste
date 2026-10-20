@@ -98,10 +98,10 @@ export function Mannequin({ type, outfit = {}, skin = true, garmentRef, position
     () =>
       new MeshPhysicalMaterial({
         color: "#615e6c",
-        roughness: 0.68,
-        metalness: 0,
-        clearcoat: 0.12,
-        clearcoatRoughness: 0.6,
+        roughness: 0.55,
+        metalness: 0.05,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.45,
         sheen: 0.3,
         sheenRoughness: 0.6,
         sheenColor: "#9b97ad",
