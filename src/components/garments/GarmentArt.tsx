@@ -81,27 +81,37 @@ export function GarmentArt({ type, color, title, withHanger = false, className }
     >
       {title ? <title id={titleId}>{title}</title> : null}
       <defs>
-        {/* luz vindo do alto à esquerda */}
-        <linearGradient id={`${uid}-body`} gradientUnits="userSpaceOnUse" x1="30" y1="10" x2="170" y2="232">
+        {/* Mesma luz da cena 3D: principal vinda do alto à direita, preenchimento frio à esquerda. */}
+        <linearGradient id={`${uid}-body`} gradientUnits="userSpaceOnUse" x1="170" y1="10" x2="30" y2="232">
           <stop offset="0" stopColor={p.hi} stopOpacity={0.35} />
           <stop offset="0.12" stopColor={p.base} />
           <stop offset="0.6" stopColor={p.base} />
           <stop offset="1" stopColor={p.shade} stopOpacity={0.28} />
         </linearGradient>
-        {/* laterais mais escuras: arredonda o volume */}
+        {/* Volume: o lado do preenchimento fica mais escuro que o lado da luz. */}
         <linearGradient id={`${uid}-edge`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="200" y2="0">
-          <stop offset="0" stopColor={p.shade} stopOpacity={0.5} />
-          <stop offset="0.22" stopColor={p.shade} stopOpacity={0} />
-          <stop offset="0.78" stopColor={p.shade} stopOpacity={0} />
-          <stop offset="1" stopColor={p.shade} stopOpacity={0.5} />
+          <stop offset="0" stopColor={p.shade} stopOpacity={0.55} />
+          <stop offset="0.26" stopColor={p.shade} stopOpacity={0} />
+          <stop offset="0.8" stopColor={p.shade} stopOpacity={0} />
+          <stop offset="1" stopColor={p.shade} stopOpacity={0.3} />
         </linearGradient>
-        <radialGradient id={`${uid}-sheen`} gradientUnits="userSpaceOnUse" cx="72" cy="64" r="120">
+        {/* Oclusão do chão: a barra recebe o lavanda-escuro da sombra dos manequins. */}
+        <linearGradient id={`${uid}-ground`} gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="240">
+          <stop offset="0.68" stopColor="#4b3f63" stopOpacity={0} />
+          <stop offset="1" stopColor="#4b3f63" stopOpacity={0.18} />
+        </linearGradient>
+        {/* Brilho macio de tecido na borda que recebe a luz (o "sheen" do material 3D). */}
+        <linearGradient id={`${uid}-rim`} gradientUnits="userSpaceOnUse" x1="200" y1="0" x2="70" y2="0">
+          <stop offset="0" stopColor={p.hi} stopOpacity={p.isDark ? 0.55 : 0.8} />
+          <stop offset="0.5" stopColor={p.hi} stopOpacity={0} />
+        </linearGradient>
+        <radialGradient id={`${uid}-sheen`} gradientUnits="userSpaceOnUse" cx="128" cy="64" r="120">
           <stop offset="0" stopColor="#ffffff" stopOpacity={p.isDark ? 0.16 : 0.32} />
           <stop offset="1" stopColor="#ffffff" stopOpacity={0} />
         </radialGradient>
         <radialGradient id={`${uid}-floor`}>
-          <stop offset="0" stopColor="#3b3a42" stopOpacity={0.28} />
-          <stop offset="1" stopColor="#3b3a42" stopOpacity={0} />
+          <stop offset="0" stopColor="#4b3f63" stopOpacity={0.3} />
+          <stop offset="1" stopColor="#4b3f63" stopOpacity={0} />
         </radialGradient>
         <clipPath id={`${uid}-clip`}>
           <path d={shape.outline} />
@@ -121,12 +131,16 @@ export function GarmentArt({ type, color, title, withHanger = false, className }
         <rect x={0} y={0} width={width} height={height} fill={`url(#${uid}-edge)`} />
         <Front p={p} />
         <rect x={0} y={0} width={width} height={height} fill={`url(#${uid}-sheen)`} />
+        <rect x={0} y={0} width={width} height={height} fill={`url(#${uid}-ground)`} />
+        <path d={shape.outline} fill="none" stroke={`url(#${uid}-rim)`} strokeWidth={5} strokeLinejoin="round" />
       </g>
+      {/* Contorno suave: o 3D não tem linha de contorno, só a borda do tecido. */}
       <path
         d={shape.outline}
         fill="none"
         stroke={p.edge}
-        strokeWidth={1.2}
+        strokeOpacity={0.55}
+        strokeWidth={1}
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
       />

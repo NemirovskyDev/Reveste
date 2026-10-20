@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FaqList } from "@/components/help/FaqList";
+import { BrandMarquee } from "@/components/home/BrandMarquee";
 import { BuyoutCalculator } from "@/components/home/BuyoutCalculator";
 import { FeaturedCarousel } from "@/components/home/FeaturedCarousel";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
-import { LookShowcase } from "@/components/home/LookShowcase";
+import { ManequimShowcase } from "@/components/home/ManequimShowcase";
+import { PlanSimulator } from "@/components/home/PlanSimulator";
 import { PlanTeaser } from "@/components/home/PlanTeaser";
+import { ScrollAccents } from "@/components/home/ScrollAccents";
 import { Container } from "@/components/layout/Container";
 import { ButtonLink } from "@/components/ui/Button";
-import { BRANDS, CATALOG } from "@/data/catalog";
+import { CATALOG } from "@/data/catalog";
 import { FAQ } from "@/content/faq";
 import { SITE_URL } from "@/lib/site";
 
@@ -47,21 +50,15 @@ const jsonLd = [
 export default function Home() {
   return (
     <main id="conteudo" tabIndex={-1}>
+      <ScrollAccents />
       <HeroSection />
 
-      <section aria-label="Marcas do catálogo" className="border-y-2 border-ink bg-lavender py-6">
-        <Container>
-          <ul className="flex flex-wrap items-center justify-center gap-x-10 gap-y-3 font-display text-2xl font-extrabold tracking-[-0.02em]">
-            {BRANDS.map((brand) => (
-              <li key={brand.id}>{brand.name}</li>
-            ))}
-          </ul>
-        </Container>
-      </section>
+      <BrandMarquee />
 
-      <LookShowcase />
+      <ManequimShowcase />
       <HowItWorks />
       <PlanTeaser />
+      <PlanSimulator />
 
       <Container as="section" aria-labelledby="destaques" className="py-16 md:py-24">
         <div className="mb-2 flex flex-wrap items-end justify-between gap-4">

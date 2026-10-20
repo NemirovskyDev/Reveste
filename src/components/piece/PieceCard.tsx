@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { GarmentArt } from "@/components/garments/GarmentArt";
 import { LabelTag } from "@/components/ui/LabelTag";
+import { Tilt } from "@/components/ui/Tilt";
 import { TIER_LABEL, type Piece } from "@/data/catalog";
 import { formatMoney } from "@/lib/format";
 import { pieceBrandName } from "@/lib/piece";
@@ -11,14 +12,16 @@ export function PieceCard({ piece, priority = false }: { piece: Piece; priority?
   return (
     <article className="group relative">
       <Link href={`/peca/${piece.id}`} className="block rounded-card pt-4 outline-offset-4">
-        <LabelTag
-          tier={piece.tier}
-          className="transition duration-500 ease-out-expo group-hover:-translate-y-1.5 group-hover:shadow-lift"
-        >
-          <div className="mx-auto aspect-[5/6] w-full max-w-64" data-priority={priority ? "" : undefined}>
-            <GarmentArt type={piece.type} color={piece.color} className="h-full w-full" />
-          </div>
-        </LabelTag>
+        <Tilt>
+          <LabelTag
+            tier={piece.tier}
+            className="transition duration-500 ease-out-expo group-hover:-translate-y-1.5 group-hover:shadow-lift"
+          >
+            <div className="mx-auto aspect-[5/6] w-full max-w-64" data-priority={priority ? "" : undefined}>
+              <GarmentArt type={piece.type} color={piece.color} className="h-full w-full" />
+            </div>
+          </LabelTag>
+        </Tilt>
         <div className="mt-4 grid gap-0.5">
           <p className="font-display text-lg font-extrabold leading-tight">{pieceBrandName(piece)}</p>
           <h3 className="font-sans text-base font-medium leading-snug">{piece.name}</h3>

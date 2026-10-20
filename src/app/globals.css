@@ -161,7 +161,90 @@ html.lenis body {
   animation: check-pop 0.4s var(--ease-out-expo) both;
 }
 
+/* Faixa de marcas: duas cópias lado a lado deslizam metade da largura e voltam, sem salto. */
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+
+.marquee:hover {
+  animation-play-state: paused;
+}
+
+.marquee-track {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2.5rem;
+  padding-right: 2.5rem;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Inclinação dos cards: o componente Tilt escreve --tilt-x e --tilt-y; só em ponteiro fino com hover. */
+@media (hover: hover) and (pointer: fine) {
+  .tilt {
+    transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    transition: transform 0.25s var(--ease-out-expo);
+  }
+}
+
+/* Sliders do simulador: trilho com preenchimento (--fill via background-size) e miolo grande para toque. */
+.sim-range {
+  appearance: none;
+  background:
+    linear-gradient(var(--color-ink), var(--color-ink)) left center / 0% 6px no-repeat,
+    linear-gradient(rgb(59 58 66 / 0.22), rgb(59 58 66 / 0.22)) left center / 100% 6px no-repeat;
+  border-radius: 999px;
+}
+
+.sim-range::-webkit-slider-runnable-track,
+.sim-range::-moz-range-track {
+  height: 44px;
+  background: transparent;
+}
+
+.sim-range::-webkit-slider-thumb {
+  margin-top: 0.5rem;
+  appearance: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 999px;
+  background: var(--color-canvas);
+  box-shadow: 0 2px 0 var(--color-ink);
+}
+
+.sim-range::-moz-range-thumb {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 999px;
+  background: var(--color-canvas);
+  box-shadow: 0 2px 0 var(--color-ink);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .marquee {
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: none;
+  }
+
+  .marquee-copy {
+    display: none;
+  }
+
+  .tilt {
+    transform: none !important;
+  }
+
   html {
     scroll-behavior: auto;
   }
