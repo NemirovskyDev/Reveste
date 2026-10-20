@@ -8,6 +8,7 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { ManequimShowcase } from "@/components/home/ManequimShowcase";
 import { PlanSimulator } from "@/components/home/PlanSimulator";
+import { RackBand } from "@/components/home/RackBand";
 import { PlanTeaser } from "@/components/home/PlanTeaser";
 import { ScrollAccents } from "@/components/home/ScrollAccents";
 import { StoreEntrance } from "@/components/home/StoreEntrance";
@@ -67,6 +68,8 @@ export default function Home() {
       </div>
       <PlanTeaser />
       <PlanSimulator />
+
+      <RackBand />
 
       <Container as="section" aria-labelledby="destaques" className="py-16 md:py-24">
         <div className="mb-2 flex flex-wrap items-end justify-between gap-4">

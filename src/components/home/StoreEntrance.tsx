@@ -1,10 +1,11 @@
 "use client";
 
 import { motion, useInView, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Container } from "@/components/layout/Container";
 import { ButtonLink } from "@/components/ui/Button";
 import { assetUrl } from "@/lib/assets";
+import { useLightDevice } from "@/lib/useLightDevice";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
 
 /** Duração do vídeo (s) enquanto ele não informa a própria; o arquivo entrada-loja.mp4 tem 10 s. */
@@ -155,19 +156,9 @@ function ScrubEntrance() {
  * Seção "Entre na loja". Quem pediu menos movimento recebe a versão estática; o contêiner externo é o mesmo nos
  * dois casos para a troca depois da hidratação não mexer nos vizinhos da página.
  */
-/** Aparelho fraco ou economia de dados: sem baixar 4,7 MB de vídeo nem ficar pulando quadros. */
-function isLightDevice(): boolean {
-  const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
-  return (
-    (typeof nav.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 2) ||
-    (typeof nav.deviceMemory === "number" && nav.deviceMemory <= 2) ||
-    nav.connection?.saveData === true
-  );
-}
-const subscribeNothing = () => () => {};
-
 export function StoreEntrance() {
   const reduced = usePrefersReducedMotion();
-  const light = useSyncExternalStore(subscribeNothing, isLightDevice, () => false);
+  // Aparelho fraco ou economia de dados: sem baixar 4,7 MB de vídeo nem ficar pulando quadros.
+  const light = useLightDevice();
   return <div>{reduced || light ? <StaticEntrance /> : <ScrubEntrance />}</div>;
 }
