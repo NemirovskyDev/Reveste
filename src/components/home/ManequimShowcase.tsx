@@ -73,7 +73,7 @@ function ScrollSection() {
           <p className="sr-only">Dois manequins giram e trocam de lugar e de roupa conforme você rola a página.</p>
         </div>
 
-        <div className="mx-auto grid min-h-0 w-full max-w-[82rem] flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)] lg:grid-rows-1 lg:items-center lg:gap-6">
+        <div className="mx-auto grid min-h-0 w-full max-w-[82rem] flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,0.85fr)_minmax(0,2.3fr)_minmax(0,0.85fr)] lg:grid-rows-1 lg:items-center lg:gap-6">
           <PriceHook className="hidden lg:block" />
 
           <div ref={stage} aria-hidden="true" className="relative min-h-0 lg:h-full">
