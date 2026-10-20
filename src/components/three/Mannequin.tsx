@@ -455,7 +455,24 @@ export function Mannequin({ type, skinColor, hair, shoes, outfit = NO_OUTFIT, sk
   );
   const shoeMaterial = useMemo(() => fabric(shoes, true), [shoes]);
 
+  // Roupa de baixo (cueca; calcinha e top para elas) por baixo das roupas: a pessoa nunca aparece nua quando as peças trocam.
+  const underwear = useMemo(() => {
+    if (!body) return null;
+    const female = type === "female";
+    const briefs = bodyRegion(
+      body,
+      (part, _x, y) => (part === PART.torso && y >= (female ? 0.9 : 0.87) && y <= (female ? 1.02 : 1.03)) || (part === PART.thigh && y >= (female ? 0.87 : 0.76)),
+      0.004,
+    );
+    const top = female ? bodyRegion(body, (part, _x, y) => part === PART.torso && y >= 1.235 && y <= 1.375, 0.004) : null;
+    return { briefs, top };
+  }, [body, type]);
+  const underwearMaterial = useMemo(() => fabric(type === "female" ? "#efe6ee" : "#3f4152", true), [type]);
+
   useEffect(() => () => skinMaterial.dispose(), [skinMaterial]);
+  useEffect(() => () => underwear?.briefs.dispose(), [underwear]);
+  useEffect(() => () => underwear?.top?.dispose(), [underwear]);
+  useEffect(() => () => underwearMaterial.dispose(), [underwearMaterial]);
   useEffect(() => () => shoeGeometry?.dispose(), [shoeGeometry]);
   useEffect(() => () => shoeMaterial.dispose(), [shoeMaterial]);
   useEffect(
@@ -475,6 +492,8 @@ export function Mannequin({ type, skinColor, hair, shoes, outfit = NO_OUTFIT, sk
         <>
           <mesh geometry={body} material={skinMaterial} />
           {shoeGeometry && <mesh geometry={shoeGeometry} material={shoeMaterial} />}
+          {underwear && <mesh geometry={underwear.briefs} material={underwearMaterial} />}
+          {underwear?.top && <mesh geometry={underwear.top} material={underwearMaterial} />}
           <HairPiece type={type} style={hair.style} color={hairTone} />
         </>
       )}
