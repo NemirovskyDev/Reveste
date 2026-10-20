@@ -11,6 +11,12 @@ import { useCart } from "@/store/cart";
 import { usePlan } from "@/store/plan";
 import { useSession } from "@/store/session";
 
+const TOP_NOTICES = [
+  "Frete grátis na assinatura de 4 peças",
+  "Escolha 4 peças por mês, use e devolva",
+  "Gostou? Compre descontando o que já pagou de aluguel",
+] as const;
+
 export function Header() {
   const pathname = usePathname();
   // O menu guarda em qual página foi aberto: ao navegar, `open` volta a falso sem precisar de efeito.
@@ -49,9 +55,21 @@ export function Header() {
       style={{ viewTransitionName: "site-header" }}
       className={cn("sticky top-0 z-40 bg-canvas transition-shadow duration-300", scrolled && "shadow-[0_1px_0_var(--color-line)]")}
     >
-      <p className="bg-peach px-4 py-2 text-center text-sm font-medium">
-        Frete grátis na assinatura de 4 peças.
-      </p>
+      {/* Faixa de avisos que corre; com movimento reduzido vira texto parado (ver .marquee no CSS). */}
+      <div className="overflow-hidden bg-peach py-2 text-sm font-medium">
+        <div className="marquee" style={{ animationDuration: "40s" }}>
+          {[false, true].map((copy) => (
+            <ul key={String(copy)} aria-hidden={copy || undefined} className={`marquee-track ${copy ? "marquee-copy" : ""}`}>
+              {TOP_NOTICES.map((notice) => (
+                <li key={notice} className="flex items-center gap-x-10">
+                  {notice}
+                  <span aria-hidden="true">✦</span>
+                </li>
+              ))}
+            </ul>
+          ))}
+        </div>
+      </div>
       <div className="mx-auto flex h-[4.5rem] w-full max-w-[82rem] items-center justify-between gap-4 px-5 md:px-8">
         <Logo />
 

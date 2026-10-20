@@ -56,7 +56,12 @@ export default function Home() {
       <BrandMarquee />
 
       <ManequimShowcase />
-      <HowItWorks />
+
+      {/* O GSAP envolve a seção fixada num "pin-spacer"; o contêiner mantém estável o ponto de inserção do React
+          quando a seção do manequim troca de versão (sem ele a troca quebrava com "insertBefore"). */}
+      <div>
+        <HowItWorks />
+      </div>
       <PlanTeaser />
       <PlanSimulator />
 

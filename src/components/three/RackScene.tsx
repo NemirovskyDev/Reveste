@@ -48,6 +48,8 @@ type Built = {
 /** Ângulo áureo: espalha as fases de balanço sem que duas peças vizinhas fiquem sincronizadas. */
 const GOLDEN_ANGLE = 2.399963;
 const MAX_FRAME_DT = 1 / 20;
+/** Giro de vitrine em repouso, em radianos por segundo (uma volta a cada ~40 s). */
+const IDLE_SPEED = 0.16;
 
 const SHADOW_RADIUS = 1.35;
 
@@ -212,6 +214,8 @@ export function RackScene({ progress, items }: RackSceneProps) {
   // Estado mutável do loop: fora do React de propósito, para não re-renderizar a cada frame.
   const motion = useRef({
     rotation: 0,
+    /** Ângulo acumulado do giro de vitrine. */
+    idle: 0,
     omega: 0,
     energy: 0.6,
     time: 0,
@@ -270,7 +274,9 @@ export function RackScene({ progress, items }: RackSceneProps) {
     // Limita o delta: ao voltar de uma aba oculta ele seria enorme e a arara "pularia".
     const dt = Math.min(Math.max(rawDelta, 1e-4), MAX_FRAME_DT);
 
-    const target = MathUtils.clamp(progress.get(), 0, 1) * TURNS * Math.PI * 2;
+    // Giro suave e constante de vitrine, somado ao que vem da rolagem.
+    m.idle += dt * IDLE_SPEED;
+    const target = MathUtils.clamp(progress.get(), 0, 1) * TURNS * Math.PI * 2 + m.idle;
     if (!m.primed) {
       m.rotation = target; // primeira renderização já no ângulo certo, sem giro de entrada
       m.primed = true;
@@ -303,9 +309,8 @@ export function RackScene({ progress, items }: RackSceneProps) {
       pendulum.rotation.x = m.leanX[i] + m.energy * 0.05 * Math.sin(m.time * 1.7 + phase * 1.3 + 1);
     }
 
-    // Só pede outro frame enquanto algo ainda se move; fora disso a cena fica parada.
-    const rotating = Math.abs(target - m.rotation) > 2e-4;
-    if (rotating || m.energy > 0.02) invalidate();
+    // O giro de vitrine nunca para, então pede sempre o próximo frame; fora da tela o loop já pausa (`active`).
+    invalidate();
   });
 
   return (

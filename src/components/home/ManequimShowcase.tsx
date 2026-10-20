@@ -108,5 +108,14 @@ function ScrollSection() {
 /** Cena 3D com os manequins; sem WebGL, em aparelho fraco ou com movimento reduzido, mostra os looks em 2D. */
 export function ManequimShowcase() {
   const canRender3D = useCanRender3D();
-  return canRender3D ? <ScrollSection /> : <LookShowcase />;
+  // Cada versão fica no seu contêiner: a troca depois da hidratação remonta um bloco só.
+  return canRender3D ? (
+    <div key="3d">
+      <ScrollSection />
+    </div>
+  ) : (
+    <div key="2d">
+      <LookShowcase />
+    </div>
+  );
 }
