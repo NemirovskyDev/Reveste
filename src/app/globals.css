@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+/* Seção "Como funciona" presa e na horizontal: só com largura e altura de sobra e sem pedido de menos movimento. */
+@custom-variant pin (@media (min-width: 64rem) and (min-height: 43.75rem) and (prefers-reduced-motion: no-preference));
+
+/* Identidade Reveste: pastéis suaves, grafite no texto, etiqueta de roupa como motivo. */
+@theme {
+  --color-canvas: #fbf8fc;
+  --color-cream: #fbf7f2;
+  --color-blush: #f4c9d1;
+  --color-lavender: #d9ccf0;
+  --color-mint: #cfe8dc;
+  --color-peach: #fad9c1;
+  --color-ink: #3b3a42;
+  --color-ink-soft: #5a5864;
+  --color-line: rgb(59 58 66 / 0.16);
+  --color-danger: #7a1d1d;
+  --color-danger-soft: #fbdada;
+
+  --font-display: var(--font-bricolage), "Trebuchet MS", system-ui, sans-serif;
+  --font-sans: var(--font-hanken), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-card: 1rem;
+  --radius-control: 0.75rem;
+
+  --shadow-lift: 0 10px 20px -8px rgb(59 58 66 / 0.45);
+  --shadow-soft: 0 24px 48px -24px rgb(59 58 66 / 0.35);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --breakpoint-3xl: 120rem;
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    scrollbar-color: var(--color-lavender) var(--color-canvas);
+    scroll-padding-top: 7rem; /* o cabeçalho fixo não cobre o alvo de âncoras e do foco */
+    accent-color: var(--color-ink);
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: var(--color-lavender);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  input,
+  select,
+  textarea {
+    caret-color: var(--color-ink);
+  }
+
+  /* O <main> só recebe foco pelo link "Pular para o conteúdo". */
+  main:focus {
+    outline: none;
+  }
+}
+
+/* Lenis (rolagem suave): estilos recomendados pela biblioteca. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+/* Revelação ao rolar (componente Reveal): o estado inicial só é aplicado depois de montar no navegador. */
+.reveal {
+  transition:
+    opacity 0.9s var(--ease-out-expo) var(--reveal-delay, 0ms),
+    transform 0.9s var(--ease-out-expo) var(--reveal-delay, 0ms);
+}
+
+.reveal-pending {
+  opacity: 0;
+  transform: translateY(1.75rem);
+}
+
+/* Transição entre páginas: o template do App Router remonta a cada navegação. */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.page-enter {
+  animation: page-enter 0.6s var(--ease-out-expo) both;
+}
+
+/* Microinterações: o contador da sacola "pula" a cada mudança; a marca de escolha aparece com um estalo. */
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes check-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.badge-pop {
+  animation: badge-pop 0.45s var(--ease-out-expo);
+}
+
+.check-pop {
+  animation: check-pop 0.4s var(--ease-out-expo) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal-pending {
+    opacity: 1;
+    transform: none;
+  }
+
+  .page-enter {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
