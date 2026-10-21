@@ -51,12 +51,17 @@ export function PieceActions({ piece }: { piece: Piece }) {
 
   return (
     <div className="grid gap-7">
-      <ChoiceGroup
-        legend="Tamanho"
-        options={piece.sizes.map((value) => ({ value, label: value }))}
-        value={size}
-        onChange={setSize}
-      />
+      <div className="grid gap-2">
+        <ChoiceGroup
+          legend="Tamanho"
+          options={piece.sizes.map((value) => ({ value, label: value }))}
+          value={size}
+          onChange={setSize}
+        />
+        <Link href="/guia-de-medidas" className="justify-self-start text-sm font-bold underline underline-offset-4">
+          Qual é o meu tamanho? Veja o guia de medidas
+        </Link>
+      </div>
 
       <ChoiceGroup
         legend="Quanto tempo você quer ficar com a peça?"

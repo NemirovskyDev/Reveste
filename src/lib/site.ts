@@ -36,6 +36,7 @@ export const FOOTER_NAV = [
     title: "Ajuda",
     links: [
       { href: "/ajuda", label: "Perguntas frequentes" },
+      { href: "/guia-de-medidas", label: "Guia de medidas" },
       { href: "/ajuda#regras", label: "Atraso, dano e compra" },
       { href: "/marcas", label: "Para marcas" },
     ],

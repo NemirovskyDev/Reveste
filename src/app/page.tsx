@@ -6,7 +6,7 @@ import { BuyoutCalculator } from "@/components/home/BuyoutCalculator";
 import { FeaturedCarousel } from "@/components/home/FeaturedCarousel";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorks } from "@/components/home/HowItWorks";
-import { ManequimShowcase } from "@/components/home/ManequimShowcase";
+import { RealLooks } from "@/components/home/RealLooks";
 import { PlanSimulator } from "@/components/home/PlanSimulator";
 import { RackBand } from "@/components/home/RackBand";
 import { PlanTeaser } from "@/components/home/PlanTeaser";
@@ -60,7 +60,7 @@ export default function Home() {
 
       <StoreEntrance />
 
-      <ManequimShowcase />
+      <RealLooks />
 
       {/* O GSAP envolve a seção fixada num "pin-spacer"; o contêiner mantém estável o ponto de inserção do React
           quando a seção do manequim troca de versão (sem ele a troca quebrava com "insertBefore"). */}

@@ -85,7 +85,7 @@ export const FAQ: readonly FaqItem[] = [
     category: "aluguel",
     question: "Como escolho o tamanho certo?",
     answer:
-      "Cada peça mostra os tamanhos disponíveis e a descrição da modelagem. Compare com uma peça sua que serve bem e, na dúvida, pergunte pelo formulário de contato na página de ajuda.",
+      "Cada peça mostra os tamanhos disponíveis e a descrição da modelagem. Use o guia de medidas (/guia-de-medidas) para descobrir o tamanho pelas suas medidas, compare com uma peça sua que serve bem e, na dúvida, pergunte pelo formulário de contato na página de ajuda.",
   },
   {
     id: "caimento",

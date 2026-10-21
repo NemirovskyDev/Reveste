@@ -7,6 +7,7 @@ const STATIC_ROUTES = [
   { path: "/catalogo", priority: 0.9 },
   { path: "/assinatura", priority: 0.9 },
   { path: "/doar", priority: 0.6 },
+  { path: "/guia-de-medidas", priority: 0.6 },
   { path: "/marcas", priority: 0.6 },
   { path: "/ajuda", priority: 0.6 },
   { path: "/termos", priority: 0.2 },
