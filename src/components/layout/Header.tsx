@@ -83,7 +83,7 @@ export function Header() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="inline-flex min-h-11 items-center font-medium underline-offset-8 hover:underline"
+                  className="relative inline-flex min-h-11 items-center font-medium after:absolute after:inset-x-0 after:bottom-1.5 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-ink after:transition-transform after:duration-300 after:ease-out-expo hover:after:scale-x-100 focus-visible:after:scale-x-100 aria-[current=page]:after:scale-x-100"
                   aria-current={pathname === item.href ? "page" : undefined}
                 >
                   {item.label}
@@ -96,7 +96,7 @@ export function Header() {
         <div className="flex items-center gap-1 sm:gap-2">
           <Link
             href={user ? "/conta" : "/entrar"}
-            className="hidden min-h-11 min-w-[8.5rem] items-center justify-end gap-2 rounded-full px-3 font-medium hover:bg-lavender/50 sm:inline-flex"
+            className="hidden min-h-11 min-w-[8.5rem] items-center justify-end gap-2 rounded-full px-3 font-medium transition duration-300 ease-out-expo hover:bg-lavender/50 fx:scale-105 sm:inline-flex"
           >
             <Icon name="user" size={22} />
             {/* Antes de saber se há sessão o texto fica fora da vista (sr-only), mas continua dando nome ao link. */}
@@ -104,7 +104,7 @@ export function Header() {
           </Link>
           <Link
             href="/sacola"
-            className="relative inline-flex size-11 items-center justify-center rounded-full hover:bg-lavender/50"
+            className="relative inline-flex size-11 items-center justify-center rounded-full transition duration-300 ease-out-expo hover:bg-lavender/50 fx:scale-110"
             aria-label={bagCount > 0 ? `Sacola, ${bagCount} ${bagCount === 1 ? "peça" : "peças"}` : "Sacola vazia"}
           >
             <Icon name="bag" size={24} />

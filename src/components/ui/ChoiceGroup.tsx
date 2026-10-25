@@ -49,13 +49,19 @@ export function ChoiceGroup<T extends string | number>({
                 "flex min-h-11 items-center justify-between gap-4 rounded-control border-2 border-ink bg-white px-4 py-2 font-bold",
                 "transition duration-300 ease-out-expo",
                 // Selecionado: fundo, sombra e um check. A cor sozinha não basta (contraste 1,44:1 com o branco).
-                "peer-checked:bg-lavender peer-checked:shadow-lift peer-hover:-translate-y-0.5",
+                "peer-checked:bg-lavender peer-checked:shadow-lift peer-hover:bg-lavender/40 peer-hover:scale-[1.03] peer-active:scale-[0.98]",
                 "peer-focus-visible:outline-3 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-ink",
                 "peer-disabled:opacity-45 peer-disabled:line-through",
               )}
             >
               <span className="inline-flex items-center gap-2">
-                {option.value === value && <Icon name="check" size={18} className="check-pop" />}
+                {/* O espaço do check é sempre reservado: sem isso a opção escolhida ficava mais larga, as outras mudavam de lugar e a linha "tremia" no celular. */}
+                <Icon
+                  key={option.value === value ? "on" : "off"}
+                  name="check"
+                  size={18}
+                  className={option.value === value ? "check-pop" : "invisible"}
+                />
                 {option.label}
               </span>
               {option.detail && <span className="font-medium text-ink-soft">{option.detail}</span>}

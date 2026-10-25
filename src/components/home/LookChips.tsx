@@ -22,7 +22,7 @@ export function LookChips({ look }: { look: Look }) {
       </p>
       <ul aria-labelledby={labelId} className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2">
         {pieces.map((piece) => (
-          <li key={piece.id} className="flex shrink-0 snap-start items-center gap-1 rounded-full border-2 border-ink bg-canvas/90 p-1">
+          <li key={piece.id} className="flex shrink-0 snap-start items-center gap-1 rounded-full border-2 border-ink bg-canvas/90 p-1 transition duration-300 ease-out-expo hover:bg-lavender/40 fx:scale-[1.03]">
             <Link href={`/peca/${piece.id}`} className="flex items-center gap-2 rounded-full pr-2 outline-offset-2">
               <span className="block h-11 w-9 shrink-0 overflow-hidden rounded-full bg-white">
                 <PieceImage piece={piece} className="h-full w-full !rounded-none" />

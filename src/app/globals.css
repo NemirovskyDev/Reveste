@@ -10,6 +10,25 @@
   }
 }
 
+/* Microanimação ao passar o mouse (ponteiro fino, sem pedido de menos movimento): botões e links crescem um pouco.
+   Usa só a escala, e não o deslocamento, para o alvo do clique não se mexer sob o ponteiro e a animação não "tremer". */
+@custom-variant fx {
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    &:where(:root:not([data-motion="off"]) *):hover {
+      @slot;
+    }
+  }
+}
+
+/* Igual ao fx, mas para os filhos de um elemento .group sob o ponteiro (a seta do botão, por exemplo). */
+@custom-variant fx-group {
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    &:where(:root:not([data-motion="off"]) .group:hover *) {
+      @slot;
+    }
+  }
+}
+
 /* Identidade Reveste: pastéis suaves, grafite no texto, etiqueta de roupa como motivo. */
 @theme {
   --color-canvas: #fbf8fc;

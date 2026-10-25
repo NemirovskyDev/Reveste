@@ -20,12 +20,16 @@ const SIZE: Record<Size, string> = {
   lg: "min-h-14 px-8 text-lg",
 };
 
+/** Ícones do botão se mexem junto com ele: o da frente cresce e a seta anda um pouco para a frente. */
+const ICON_MOTION = "transition-transform duration-300 ease-out-expo fx-group:scale-110";
+const ARROW_MOTION = "transition-transform duration-300 ease-out-expo fx-group:translate-x-1";
+
 /** Classes do botão, para usar em <button> e em <Link> sem duplicar estilo. */
 export function buttonClasses({ variant = "primary", size = "md", block, className }: Style = {}): string {
   return cn(
     "inline-flex items-center justify-center gap-2 rounded-full border-2 border-ink font-bold",
     "transition duration-300 ease-out-expo select-none",
-    "enabled:hover:-translate-y-0.5 enabled:active:translate-y-0 enabled:active:shadow-none",
+    "group enabled:fx:scale-[1.04] enabled:active:scale-[0.97] enabled:active:shadow-none",
     "disabled:cursor-not-allowed disabled:opacity-55",
     VARIANT[variant],
     SIZE[size],
@@ -49,9 +53,9 @@ export function Button({
 }: Style & Decor & ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button type={type} className={buttonClasses({ variant, size, block, className })} {...props}>
-      {icon && <Icon name={icon} size={20} />}
+      {icon && <Icon name={icon} size={20} className={ICON_MOTION} />}
       {children}
-      {iconAfter && <Icon name={iconAfter} size={20} />}
+      {iconAfter && <Icon name={iconAfter} size={20} className={ARROW_MOTION} />}
     </button>
   );
 }
@@ -68,9 +72,9 @@ export function ButtonLink({
 }: Style & Decor & Omit<ComponentProps<typeof Link>, "children" | "className">) {
   return (
     <Link className={buttonClasses({ variant, size, block, className })} {...props}>
-      {icon && <Icon name={icon} size={20} />}
+      {icon && <Icon name={icon} size={20} className={ICON_MOTION} />}
       {children}
-      {iconAfter && <Icon name={iconAfter} size={20} />}
+      {iconAfter && <Icon name={iconAfter} size={20} className={ARROW_MOTION} />}
     </Link>
   );
 }

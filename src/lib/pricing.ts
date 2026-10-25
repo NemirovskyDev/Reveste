@@ -69,11 +69,25 @@ export function planQuote(pieces: readonly Priced[]): PlanQuote {
   return partialPlanQuote(pieces);
 }
 
-export function buyoutCents(piece: Pick<Piece, "valueCents" | "tier">, months: number): number {
-  if (!Number.isInteger(months) || months < 0) {
+/** Como a pessoa alugou a peça: por um prazo avulso (7, 14 ou 30 dias) ou por meses no plano. */
+export type RentalPeriod = { kind: "rental"; days: RentalDays } | { kind: "plan"; months: number };
+
+/** Quanto a pessoa já pagou de aluguel naquele período (aluguel avulso, ou meses no plano já com o desconto). */
+export function rentalPaidCents(piece: Pick<Piece, "valueCents" | "tier">, period: RentalPeriod): number {
+  if (period.kind === "rental") return rentalCents(piece, period.days);
+  if (!Number.isInteger(period.months) || period.months < 0) {
     throw new PricingError("Informe os meses alugados como número inteiro, a partir de 0.");
   }
-  return Math.max(0, Math.round(piece.valueCents * BUYOUT_RATE) - months * netPlanRentalCents(piece));
+  return period.months * netPlanRentalCents(piece);
+}
+
+/** Quanto falta pagar para ficar com a peça: 70% do valor menos o aluguel já pago, nunca abaixo de zero. */
+export function buyoutAfterRentalCents(piece: Pick<Piece, "valueCents" | "tier">, period: RentalPeriod): number {
+  return Math.max(0, Math.round(piece.valueCents * BUYOUT_RATE) - rentalPaidCents(piece, period));
+}
+
+export function buyoutCents(piece: Pick<Piece, "valueCents" | "tier">, months: number): number {
+  return buyoutAfterRentalCents(piece, { kind: "plan", months });
 }
 
 export function lateFeePerDay(piece: Pick<Piece, "valueCents">): number {
